@@ -3,265 +3,278 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Dashboard - Tournament App</title>
+  <title>Profile - FF Arena</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --gold: #FFD700; --orange: #FF6B00; --dark: #0A0A0F;
-      --card: #12121A; --border: #2A2A3A; --text: #E8E8F0; --muted: #6B6B80;
-    }
-    body {
-      background: var(--dark); color: var(--text);
-      font-family: 'Rajdhani', sans-serif; min-height: 100vh;
-      padding-bottom: 80px;
-    }
-    body::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none;
-      background: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255,107,0,0.12) 0%, transparent 70%);
-    }
-    .nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 20px; border-bottom: 1px solid var(--border);
-      background: rgba(10,10,15,0.95); position: sticky; top: 0; z-index: 100;
-    }
-    .nav-logo { font-family: 'Bebas Neue'; font-size: 24px; letter-spacing: 3px;
-      background: linear-gradient(135deg, var(--gold), var(--orange));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-    .wallet-badge { background: linear-gradient(135deg, var(--orange), #FF8C00); padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 700; color: white; }
-    .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 8px; font-family: 'Rajdhani'; font-size: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: 0.2s; }
-    .logout-btn:hover { border-color: #FF6B6B; color: #FF6B6B; }
-    .content { padding: 20px; max-width: 500px; margin: 0 auto; }
-    .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; position: relative; overflow: hidden; }
-    .profile-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--orange), var(--gold), transparent); }
-    .profile-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-    .avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, var(--orange), var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: white; font-family: 'Bebas Neue'; flex-shrink: 0; border: 3px solid rgba(255,107,0,0.3); }
-    .profile-info h2 { font-family: 'Bebas Neue'; font-size: 26px; letter-spacing: 2px; }
-    .profile-info p { color: var(--muted); font-size: 13px; margin-top: 2px; }
-    .profile-info .uid { color: var(--orange); font-size: 12px; font-weight: 700; margin-top: 4px; }
-    .edit-section { border-top: 1px solid var(--border); padding-top: 16px; }
-    .edit-section h3 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
-    .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    .field-input { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: 'Rajdhani'; font-size: 15px; font-weight: 600; outline: none; transition: border-color 0.2s; }
-    .field-input:focus { border-color: var(--orange); }
-    .field-input::placeholder { color: var(--muted); font-weight: 400; }
-    .save-btn { background: linear-gradient(135deg, var(--orange), #FF8C00); border: none; border-radius: 8px; padding: 11px 20px; color: white; font-family: 'Bebas Neue'; font-size: 16px; letter-spacing: 2px; cursor: pointer; white-space: nowrap; }
-    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-align: center; }
-    .stat-icon { font-size: 28px; margin-bottom: 6px; }
-    .stat-value { font-family: 'Bebas Neue'; font-size: 30px; letter-spacing: 2px; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .stat-label { color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
-    .wallet-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; position: relative; overflow: hidden; }
-    .wallet-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), var(--orange), transparent); }
-    .wallet-title { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .wallet-balance { font-family: 'Bebas Neue'; font-size: 48px; letter-spacing: 3px; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: 20px; }
-    .wallet-actions { display: flex; gap: 10px; }
-    .btn-deposit { flex: 1; padding: 13px; border: none; border-radius: 10px; background: linear-gradient(135deg, var(--orange), #FF8C00); color: white; font-family: 'Bebas Neue'; font-size: 18px; letter-spacing: 2px; cursor: pointer; }
-    .btn-withdraw { flex: 1; padding: 13px; border: 1px solid var(--gold); border-radius: 10px; background: transparent; color: var(--gold); font-family: 'Bebas Neue'; font-size: 18px; letter-spacing: 2px; cursor: pointer; }
-    .section-title { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
-    .tx-list { display: flex; flex-direction: column; gap: 8px; }
-    .tx-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
-    .tx-left { display: flex; align-items: center; gap: 12px; }
-    .tx-icon { font-size: 20px; }
-    .tx-desc { font-size: 14px; font-weight: 600; }
-    .tx-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .tx-amount { font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 1px; }
-    .tx-amount.plus { color: #5CFF8A; }
-    .tx-amount.minus { color: #FF6B6B; }
-    .tx-amount.pending { color: var(--gold); }
-    .empty-state { text-align: center; color: var(--muted); padding: 30px; font-size: 14px; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 28px 24px; width: 100%; max-width: 500px; animation: slideUp 0.3s ease both; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .modal-title { font-family: 'Bebas Neue'; font-size: 28px; letter-spacing: 3px; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 20px; }
-    .modal-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
-    .modal-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px; color: var(--text); font-family: 'Rajdhani'; font-size: 16px; font-weight: 600; outline: none; margin-bottom: 14px; transition: border-color 0.2s; }
-    .modal-input:focus { border-color: var(--orange); }
-    .modal-input::placeholder { color: var(--muted); font-weight: 400; }
-    .method-row { display: flex; gap: 10px; margin-bottom: 16px; }
-    .method-btn { flex: 1; padding: 12px; border-radius: 10px; border: 2px solid var(--border); background: transparent; color: var(--text); font-family: 'Rajdhani'; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-    .method-btn.selected { border-color: var(--orange); background: rgba(255,107,0,0.1); color: var(--orange); }
-    .pay-instructions { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px; font-size: 13px; line-height: 1.8; margin-bottom: 16px; color: var(--muted); display: none; }
-    .pay-instructions.show { display: block; }
-    .pay-number { color: var(--gold); font-size: 18px; font-weight: 700; }
-    .modal-btn { width: 100%; padding: 15px; border: none; border-radius: 10px; background: linear-gradient(135deg, var(--orange), #FF8C00); color: white; font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 3px; cursor: pointer; margin-bottom: 10px; }
-    .modal-cancel { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--muted); font-family: 'Rajdhani'; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
-    .msg { text-align: center; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; display: none; margin-bottom: 10px; }
-    .msg.error { display: block; background: rgba(255,50,50,0.1); border: 1px solid rgba(255,50,50,0.3); color: #FF6B6B; }
-    .msg.success { display: block; background: rgba(50,255,100,0.1); border: 1px solid rgba(50,255,100,0.3); color: #5CFF8A; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--gold:#FFD700;--orange:#FF6B00;--dark:#0A0A0F;--card:#12121A;--border:#2A2A3A;--text:#E8E8F0;--muted:#6B6B80;--green:#5CFF8A;--red:#FF6B6B}
+    body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;padding-bottom:90px}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(255,107,0,0.12) 0%,transparent 70%)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.97);position:sticky;top:0;z-index:100}
+    .nav-logo{font-family:'Bebas Neue';font-size:22px;letter-spacing:3px;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .wallet-badge{background:linear-gradient(135deg,var(--orange),#FF8C00);padding:6px 16px;border-radius:20px;font-size:14px;font-weight:700;color:white}
+    .content{padding:16px;max-width:500px;margin:0 auto}
+
+    /* PROFILE */
+    .profile-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden}
+    .profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--orange),var(--gold),transparent)}
+    .profile-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .avatar{width:66px;height:66px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--gold));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:white;font-family:'Bebas Neue';flex-shrink:0;border:3px solid rgba(255,107,0,0.3)}
+    .profile-info h2{font-family:'Bebas Neue';font-size:24px;letter-spacing:2px}
+    .profile-info p{color:var(--muted);font-size:13px;margin-top:2px}
+    .uid-tag{color:var(--orange);font-size:12px;font-weight:700;margin-top:4px}
+    .edit-section{border-top:1px solid var(--border);padding-top:14px}
+    .edit-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+    .input-row{display:flex;gap:8px;margin-bottom:10px}
+    .field-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--text);font-family:'Rajdhani';font-size:14px;font-weight:600;outline:none;transition:border-color 0.2s}
+    .field-input:focus{border-color:var(--orange)}
+    .field-input::placeholder{color:var(--muted);font-weight:400}
+    .save-btn{background:linear-gradient(135deg,var(--orange),#FF8C00);border:none;border-radius:8px;padding:11px 18px;color:white;font-family:'Bebas Neue';font-size:15px;letter-spacing:2px;cursor:pointer;white-space:nowrap}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+    .stat-icon{font-size:26px;margin-bottom:4px}
+    .stat-value{font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .stat-label{color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+
+    /* WALLET */
+    .wallet-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden}
+    .wallet-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--orange),transparent)}
+    .wallet-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+    .wallet-balance{font-family:'Bebas Neue';font-size:44px;letter-spacing:3px;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:18px}
+    .wallet-actions{display:flex;gap:10px;margin-bottom:16px}
+    .btn-deposit{flex:1;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--orange),#FF8C00);color:white;font-family:'Bebas Neue';font-size:17px;letter-spacing:2px;cursor:pointer}
+    .btn-withdraw{flex:1;padding:13px;border:1px solid var(--gold);border-radius:10px;background:transparent;color:var(--gold);font-family:'Bebas Neue';font-size:17px;letter-spacing:2px;cursor:pointer}
+
+    /* TRANSACTION STATUS BELOW BUTTONS */
+    .tx-status-section{margin-bottom:4px}
+    .tx-status-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+    .tx-status-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+    .tx-status-left{display:flex;align-items:center;gap:10px}
+    .tx-status-icon{font-size:16px}
+    .tx-status-desc{font-size:13px;font-weight:600}
+    .tx-status-date{font-size:11px;color:var(--muted);margin-top:1px}
+    .tx-status-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+    .tx-status-amount{font-family:'Bebas Neue';font-size:17px}
+    .tx-status-amount.plus{color:var(--green)}
+    .tx-status-amount.minus{color:var(--red)}
+    .status-pill{font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:20px}
+    .status-pill.pending{background:rgba(255,215,0,0.15);color:var(--gold);border:1px solid rgba(255,215,0,0.3)}
+    .status-pill.approved{background:rgba(92,255,138,0.15);color:var(--green);border:1px solid rgba(92,255,138,0.3)}
+    .status-pill.rejected{background:rgba(255,107,107,0.15);color:var(--red);border:1px solid rgba(255,107,107,0.3)}
+    .no-tx{text-align:center;color:var(--muted);font-size:13px;padding:16px}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:flex-end;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:26px 22px;width:100%;max-width:500px;animation:slideUp 0.3s ease both}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-title{font-family:'Bebas Neue';font-size:26px;letter-spacing:3px;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:18px}
+    .modal-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:block}
+    .modal-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Rajdhani';font-size:15px;font-weight:600;outline:none;margin-bottom:13px;transition:border-color 0.2s}
+    .modal-input:focus{border-color:var(--orange)}
+    .modal-input::placeholder{color:var(--muted);font-weight:400}
+    .method-row{display:flex;gap:10px;margin-bottom:14px}
+    .method-btn{flex:1;padding:11px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text);font-family:'Rajdhani';font-size:14px;font-weight:700;cursor:pointer;transition:0.2s}
+    .method-btn.selected{border-color:var(--orange);background:rgba(255,107,0,0.1);color:var(--orange)}
+    .pay-instructions{background:rgba(255,255,255,0.04);border-radius:10px;padding:13px;font-size:13px;line-height:1.8;margin-bottom:14px;color:var(--muted);display:none}
+    .pay-instructions.show{display:block}
+    .pay-number{color:var(--gold);font-size:17px;font-weight:700}
+    .modal-btn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--orange),#FF8C00);color:white;font-family:'Bebas Neue';font-size:19px;letter-spacing:3px;cursor:pointer;margin-bottom:10px}
+    .modal-cancel{width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--muted);font-family:'Rajdhani';font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+    .msg{text-align:center;padding:10px;border-radius:8px;font-size:14px;font-weight:600;display:none;margin-bottom:10px}
+    .msg.error{display:block;background:rgba(255,50,50,0.1);border:1px solid rgba(255,50,50,0.3);color:var(--red)}
+    .msg.success{display:block;background:rgba(50,255,100,0.1);border:1px solid rgba(50,255,100,0.3);color:var(--green)}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,0.98);border-top:1px solid var(--border);display:flex;z-index:200}
+    .nav-item{flex:1;padding:12px 8px;text-align:center;cursor:pointer;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:none}
+    .nav-item.active{color:var(--orange)}
+    .nav-icon{font-size:22px}
   </style>
 </head>
 <body>
-  <nav class="nav">
-    <div class="nav-logo">🏆 Tournament</div>
-    <div class="nav-right">
-      <div class="wallet-badge">৳ <span id="nav-balance">0</span></div>
-      <button class="logout-btn" onclick="logOut()">Logout</button>
-    </div>
-  </nav>
+<nav class="nav">
+  <div class="nav-logo">👤 Profile</div>
+  <div class="wallet-badge">৳ <span id="nav-balance">0</span></div>
+</nav>
 
-  <div class="content">
-    <div class="profile-card">
-      <div class="profile-top">
-        <div class="avatar" id="avatar-text">?</div>
-        <div class="profile-info">
-          <h2 id="display-name">Loading...</h2>
-          <p id="display-email"></p>
-          <p class="uid" id="display-uid"></p>
-        </div>
-      </div>
-      <div class="edit-section">
-        <h3>Edit Profile</h3>
-        <div class="input-row">
-          <input type="text" class="field-input" id="input-name" placeholder="Your Name"/>
-          <input type="text" class="field-input" id="input-uid" placeholder="Game UID"/>
-        </div>
-        <div class="input-row">
-          <button class="save-btn" onclick="saveProfile()">Save</button>
-        </div>
-        <div class="msg" id="profile-msg"></div>
+<div class="content">
+  <!-- PROFILE -->
+  <div class="profile-card">
+    <div class="profile-top">
+      <div class="avatar" id="avatar-text">?</div>
+      <div class="profile-info">
+        <h2 id="display-name">Loading...</h2>
+        <p id="display-email"></p>
+        <p class="uid-tag" id="display-uid"></p>
       </div>
     </div>
-
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon">🎮</div><div class="stat-value" id="stat-played">0</div><div class="stat-label">Played</div></div>
-      <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value" id="stat-wins">0</div><div class="stat-label">Wins</div></div>
-      <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" id="stat-winrate">0%</div><div class="stat-label">Win Rate</div></div>
-      <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="stat-earned">0</div><div class="stat-label">TK Earned</div></div>
-    </div>
-
-    <div class="wallet-card">
-      <div class="wallet-title">💰 Wallet Balance</div>
-      <div class="wallet-balance">৳ <span id="wallet-balance">0</span></div>
-      <div class="wallet-actions">
-        <button class="btn-deposit" onclick="openDeposit()">+ Deposit</button>
-        <button class="btn-withdraw" onclick="openWithdraw()">Withdraw</button>
+    <div class="edit-section">
+      <div class="edit-label">Edit Profile</div>
+      <div class="input-row">
+        <input type="text" class="field-input" id="input-name" placeholder="Your Name"/>
+        <input type="text" class="field-input" id="input-uid" placeholder="Game UID"/>
       </div>
-    </div>
-
-    <div class="section-title">Recent Transactions</div>
-    <div class="tx-list" id="tx-list"><div class="empty-state">No transactions yet</div></div>
-  </div>
-
-  <!-- DEPOSIT MODAL -->
-  <div class="modal-overlay" id="deposit-modal">
-    <div class="modal">
-      <div class="modal-title">💰 Add Money</div>
-      <span class="modal-label">Amount (TK)</span>
-      <input type="number" class="modal-input" id="deposit-amount" placeholder="Enter amount"/>
-      <span class="modal-label">Payment Method</span>
-      <div class="method-row">
-        <button class="method-btn" id="btn-bkash" onclick="selectMethod('bkash')">📱 bKash</button>
-        <button class="method-btn" id="btn-nagad" onclick="selectMethod('nagad')">💳 Nagad</button>
+      <div class="input-row">
+        <button class="save-btn" onclick="saveProfile()">Save</button>
       </div>
-      <div class="pay-instructions" id="pay-instructions">
-        <p>1. Open <b id="method-name-text"></b> app</p>
-        <p>2. Go to <b>Send Money</b></p>
-        <p>3. Send to: <span class="pay-number">01301516532</span></p>
-        <p>4. Copy your <b>Transaction ID</b></p>
-      </div>
-      <span class="modal-label">Transaction ID</span>
-      <input type="text" class="modal-input" id="deposit-txid" placeholder="Paste Transaction ID"/>
-      <div class="msg" id="deposit-msg"></div>
-      <button class="modal-btn" onclick="submitDeposit()">Submit Request</button>
-      <button class="modal-cancel" onclick="closeModal('deposit-modal')">Cancel</button>
+      <div class="msg" id="profile-msg"></div>
     </div>
   </div>
 
-  <!-- WITHDRAW MODAL -->
-  <div class="modal-overlay" id="withdraw-modal">
-    <div class="modal">
-      <div class="modal-title">💸 Withdraw</div>
-      <span class="modal-label">Amount (TK)</span>
-      <input type="number" class="modal-input" id="withdraw-amount" placeholder="Enter amount"/>
-      <span class="modal-label">Payment Method</span>
-      <div class="method-row">
-        <button class="method-btn" id="wbtn-bkash" onclick="selectWithdrawMethod('bkash')">📱 bKash</button>
-        <button class="method-btn" id="wbtn-nagad" onclick="selectWithdrawMethod('nagad')">💳 Nagad</button>
-      </div>
-      <span class="modal-label">Your bKash/Nagad Number</span>
-      <input type="tel" class="modal-input" id="withdraw-number" placeholder="01XXXXXXXXX"/>
-      <div class="msg" id="withdraw-msg"></div>
-      <button class="modal-btn" style="background: linear-gradient(135deg, var(--gold), #FFA500); color: #000;" onclick="submitWithdraw()">Request Withdrawal</button>
-      <button class="modal-cancel" onclick="closeModal('withdraw-modal')">Cancel</button>
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">🎮</div><div class="stat-value" id="stat-played">0</div><div class="stat-label">Played</div></div>
+    <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value" id="stat-wins">0</div><div class="stat-label">Wins</div></div>
+    <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" id="stat-winrate">0%</div><div class="stat-label">Win Rate</div></div>
+    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="stat-earned">0</div><div class="stat-label">TK Earned</div></div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="wallet-card">
+    <div class="wallet-title">💰 Wallet Balance</div>
+    <div class="wallet-balance">৳ <span id="wallet-balance">0</span></div>
+    <div class="wallet-actions">
+      <button class="btn-deposit" onclick="openDeposit()">+ Deposit</button>
+      <button class="btn-withdraw" onclick="openWithdraw()">Withdraw</button>
+    </div>
+
+    <!-- TRANSACTION STATUS BELOW BUTTONS -->
+    <div class="tx-status-section">
+      <div class="tx-status-title">Recent Requests</div>
+      <div id="tx-status-list"><div class="no-tx">No recent transactions</div></div>
     </div>
   </div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div class="modal-overlay" id="deposit-modal">
+  <div class="modal">
+    <div class="modal-title">💰 Add Money</div>
+    <span class="modal-label">Amount (TK)</span>
+    <input type="number" class="modal-input" id="deposit-amount" placeholder="Enter amount"/>
+    <span class="modal-label">Payment Method</span>
+    <div class="method-row">
+      <button class="method-btn" id="btn-bkash" onclick="selectMethod('bkash')">📱 bKash</button>
+      <button class="method-btn" id="btn-nagad" onclick="selectMethod('nagad')">💳 Nagad</button>
+    </div>
+    <div class="pay-instructions" id="pay-instructions">
+      <p>1. Open <b id="method-name-text"></b> app</p>
+      <p>2. Go to <b>Send Money</b></p>
+      <p>3. Send to: <span class="pay-number">01301516532</span></p>
+      <p>4. Copy your <b>Transaction ID</b></p>
+    </div>
+    <span class="modal-label">Transaction ID</span>
+    <input type="text" class="modal-input" id="deposit-txid" placeholder="Paste Transaction ID"/>
+    <div class="msg" id="deposit-msg"></div>
+    <button class="modal-btn" onclick="submitDeposit()">Submit Request</button>
+    <button class="modal-cancel" onclick="closeModal('deposit-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="withdraw-modal">
+  <div class="modal">
+    <div class="modal-title">💸 Withdraw</div>
+    <span class="modal-label">Amount (TK)</span>
+    <input type="number" class="modal-input" id="withdraw-amount" placeholder="Enter amount"/>
+    <span class="modal-label">Payment Method</span>
+    <div class="method-row">
+      <button class="method-btn" id="wbtn-bkash" onclick="selectWithdrawMethod('bkash')">📱 bKash</button>
+      <button class="method-btn" id="wbtn-nagad" onclick="selectWithdrawMethod('nagad')">💳 Nagad</button>
+    </div>
+    <span class="modal-label">Your bKash/Nagad Number</span>
+    <input type="tel" class="modal-input" id="withdraw-number" placeholder="01XXXXXXXXX"/>
+    <div class="msg" id="withdraw-msg"></div>
+    <button class="modal-btn" style="background:linear-gradient(135deg,var(--gold),#FFA500);color:#000;" onclick="submitWithdraw()">Request Withdrawal</button>
+    <button class="modal-cancel" onclick="closeModal('withdraw-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item" onclick="window.location.href='home.html'"><span class="nav-icon">🏠</span>Home</button>
+  <button class="nav-item" onclick="window.location.href='tournaments.html'"><span class="nav-icon">🏆</span>Tournaments</button>
+  <button class="nav-item active"><span class="nav-icon">👤</span>Profile</button>
+</nav>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0",
-    authDomain: "tournament-app-4a050.firebaseapp.com",
-    projectId: "tournament-app-4a050",
-    storageBucket: "tournament-app-4a050.firebasestorage.app",
-    messagingSenderId: "811957533858",
-    appId: "1:811957533858:web:1d1f0f916c0aba5eccebfb"
-  };
+  const firebaseConfig = { apiKey: "AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0", authDomain: "tournament-app-4a050.firebaseapp.com", projectId: "tournament-app-4a050", storageBucket: "tournament-app-4a050.firebasestorage.app", messagingSenderId: "811957533858", appId: "1:811957533858:web:1d1f0f916c0aba5eccebfb" };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  let currentUser = null;
-  let selectedMethod = '';
-  let selectedWithdrawMethod = '';
+  let currentUser = null, selectedMethod = '', selectedWithdrawMethod = '';
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'index.html'; return; }
     currentUser = user;
     await loadProfile(user);
-    await loadTransactions(user.uid);
+    await loadTransactionStatus(user.uid);
   });
 
   async function loadProfile(user) {
     const ref = doc(db, 'users', user.uid);
     const snap = await getDoc(ref);
     let data = {};
-    if (snap.exists()) {
-      data = snap.data();
-    } else {
-      data = { name: '', uid_game: '', email: user.email, balance: 0, played: 0, wins: 0, total_earned: 0 };
-      await setDoc(ref, data);
-    }
+    if (snap.exists()) { data = snap.data(); }
+    else { data = { name:'', uid_game:'', email:user.email, balance:0, played:0, wins:0, total_earned:0 }; await setDoc(ref, data); }
     const name = data.name || 'Player';
     document.getElementById('display-name').textContent = name;
     document.getElementById('display-email').textContent = user.email;
-    document.getElementById('display-uid').textContent = data.uid_game ? '🎮 UID: ' + data.uid_game : '';
+    document.getElementById('display-uid').textContent = data.uid_game ? '🎮 UID: '+data.uid_game : '';
     document.getElementById('avatar-text').textContent = name.charAt(0).toUpperCase();
     document.getElementById('input-name').value = data.name || '';
     document.getElementById('input-uid').value = data.uid_game || '';
     const balance = data.balance || 0;
     document.getElementById('wallet-balance').textContent = balance;
     document.getElementById('nav-balance').textContent = balance;
-    const played = data.played || 0;
-    const wins = data.wins || 0;
+    const played = data.played || 0, wins = data.wins || 0;
     document.getElementById('stat-played').textContent = played;
     document.getElementById('stat-wins').textContent = wins;
-    document.getElementById('stat-winrate').textContent = played > 0 ? Math.round((wins/played)*100) + '%' : '0%';
+    document.getElementById('stat-winrate').textContent = played > 0 ? Math.round((wins/played)*100)+'%' : '0%';
     document.getElementById('stat-earned').textContent = data.total_earned || 0;
   }
 
-  async function loadTransactions(uid) {
+  async function loadTransactionStatus(uid) {
     try {
-      const q = query(collection(db, 'transactions'), where('uid', '==', uid), orderBy('created_at', 'desc'));
+      const q = query(collection(db,'transactions'), where('uid','==',uid), orderBy('created_at','desc'));
       const snap = await getDocs(q);
-      const list = document.getElementById('tx-list');
-      if (snap.empty) { list.innerHTML = '<div class="empty-state">No transactions yet</div>'; return; }
+      const list = document.getElementById('tx-status-list');
+      if (snap.empty) { list.innerHTML = '<div class="no-tx">No recent transactions</div>'; return; }
       list.innerHTML = '';
+      let count = 0;
       snap.forEach(d => {
+        if (count >= 5) return; count++;
         const tx = d.data();
-        const isPlus = tx.type === 'deposit' || tx.type === 'prize';
-        const icon = tx.type === 'deposit' ? '💰' : tx.type === 'prize' ? '🏆' : tx.type === 'withdraw' ? '💸' : '🎮';
-        const label = tx.type === 'deposit' ? 'Deposit' : tx.type === 'prize' ? 'Prize Won' : tx.type === 'withdraw' ? 'Withdrawal' : 'Tournament Entry';
-        const statusClass = tx.status === 'pending' ? 'pending' : isPlus ? 'plus' : 'minus';
-        const sign = isPlus ? '+' : '-';
-        const date = tx.created_at?.toDate?.()?.toLocaleDateString('en-GB') || 'Pending';
-        list.innerHTML += `<div class="tx-item"><div class="tx-left"><div class="tx-icon">${icon}</div><div><div class="tx-desc">${label} ${tx.status === 'pending' ? '⏳' : tx.status === 'rejected' ? '❌' : '✅'}</div><div class="tx-date">${date} · ${tx.method || ''}</div></div></div><div class="tx-amount ${statusClass}">${sign}৳${tx.amount}</div></div>`;
+        const isPlus = tx.type==='deposit'||tx.type==='prize';
+        const icon = tx.type==='deposit'?'💰':tx.type==='prize'?'🏆':tx.type==='withdraw'?'💸':'🎮';
+        const label = tx.type==='deposit'?'Deposit':tx.type==='prize'?'Prize Won':tx.type==='withdraw'?'Withdrawal':'Tournament Entry';
+        const sign = isPlus?'+':'-';
+        const amountClass = isPlus?'plus':'minus';
+        const date = tx.created_at?.toDate?.()?.toLocaleDateString('en-GB')||'Just now';
+        const statusClass = tx.status==='pending'?'pending':tx.status==='approved'?'approved':'rejected';
+        const statusText = tx.status==='pending'?'⏳ Pending':tx.status==='approved'?'✅ Approved':'❌ Rejected';
+        list.innerHTML += `
+          <div class="tx-status-item">
+            <div class="tx-status-left">
+              <div class="tx-status-icon">${icon}</div>
+              <div>
+                <div class="tx-status-desc">${label}</div>
+                <div class="tx-status-date">${date} · ${tx.method||''}</div>
+              </div>
+            </div>
+            <div class="tx-status-right">
+              <div class="tx-status-amount ${amountClass}">${sign}৳${tx.amount}</div>
+              <span class="status-pill ${statusClass}">${statusText}</span>
+            </div>
+          </div>`;
       });
     } catch(e) { console.log(e); }
   }
@@ -269,65 +282,61 @@
   window.saveProfile = async () => {
     const name = document.getElementById('input-name').value.trim();
     const uid_game = document.getElementById('input-uid').value.trim();
-    if (!name) { showMsg('profile-msg', 'Please enter your name.', 'error'); return; }
-    await updateDoc(doc(db, 'users', currentUser.uid), { name, uid_game });
+    if (!name) { showMsg('profile-msg','Please enter your name.','error'); return; }
+    await updateDoc(doc(db,'users',currentUser.uid), { name, uid_game });
     document.getElementById('display-name').textContent = name;
     document.getElementById('avatar-text').textContent = name.charAt(0).toUpperCase();
-    document.getElementById('display-uid').textContent = uid_game ? '🎮 UID: ' + uid_game : '';
-    showMsg('profile-msg', 'Profile saved! ✅', 'success');
+    document.getElementById('display-uid').textContent = uid_game?'🎮 UID: '+uid_game:'';
+    showMsg('profile-msg','Profile saved! ✅','success');
   };
 
   window.openDeposit = () => document.getElementById('deposit-modal').classList.add('open');
   window.selectMethod = (m) => {
     selectedMethod = m;
-    document.getElementById('btn-bkash').classList.toggle('selected', m === 'bkash');
-    document.getElementById('btn-nagad').classList.toggle('selected', m === 'nagad');
-    document.getElementById('method-name-text').textContent = m === 'bkash' ? 'bKash' : 'Nagad';
+    document.getElementById('btn-bkash').classList.toggle('selected',m==='bkash');
+    document.getElementById('btn-nagad').classList.toggle('selected',m==='nagad');
+    document.getElementById('method-name-text').textContent = m==='bkash'?'bKash':'Nagad';
     document.getElementById('pay-instructions').classList.add('show');
   };
   window.submitDeposit = async () => {
     const amount = parseInt(document.getElementById('deposit-amount').value);
     const txid = document.getElementById('deposit-txid').value.trim();
-    if (!amount || amount < 10) { showMsg('deposit-msg', 'Minimum deposit is 10 TK.', 'error'); return; }
-    if (!selectedMethod) { showMsg('deposit-msg', 'Please select a payment method.', 'error'); return; }
-    if (!txid) { showMsg('deposit-msg', 'Please enter your Transaction ID.', 'error'); return; }
-    await addDoc(collection(db, 'transactions'), { uid: currentUser.uid, email: currentUser.email, amount, method: selectedMethod, txid, type: 'deposit', status: 'pending', created_at: serverTimestamp() });
-    showMsg('deposit-msg', 'Request submitted! Admin will verify soon. ✅', 'success');
-    setTimeout(() => closeModal('deposit-modal'), 2500);
-    await loadTransactions(currentUser.uid);
+    if (!amount||amount<10) { showMsg('deposit-msg','Minimum deposit is 10 TK.','error'); return; }
+    if (!selectedMethod) { showMsg('deposit-msg','Please select a payment method.','error'); return; }
+    if (!txid) { showMsg('deposit-msg','Please enter your Transaction ID.','error'); return; }
+    await addDoc(collection(db,'transactions'), { uid:currentUser.uid, email:currentUser.email, amount, method:selectedMethod, txid, type:'deposit', status:'pending', created_at:serverTimestamp() });
+    showMsg('deposit-msg','Request submitted! Admin will verify soon. ✅','success');
+    setTimeout(() => { closeModal('deposit-modal'); loadTransactionStatus(currentUser.uid); }, 2000);
   };
 
   window.openWithdraw = () => document.getElementById('withdraw-modal').classList.add('open');
   window.selectWithdrawMethod = (m) => {
     selectedWithdrawMethod = m;
-    document.getElementById('wbtn-bkash').classList.toggle('selected', m === 'bkash');
-    document.getElementById('wbtn-nagad').classList.toggle('selected', m === 'nagad');
+    document.getElementById('wbtn-bkash').classList.toggle('selected',m==='bkash');
+    document.getElementById('wbtn-nagad').classList.toggle('selected',m==='nagad');
   };
   window.submitWithdraw = async () => {
     const amount = parseInt(document.getElementById('withdraw-amount').value);
     const number = document.getElementById('withdraw-number').value.trim();
-    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    const snap = await getDoc(doc(db,'users',currentUser.uid));
     const balance = snap.data().balance || 0;
-    if (!amount || amount < 50) { showMsg('withdraw-msg', 'Minimum withdrawal is 50 TK.', 'error'); return; }
-    if (!selectedWithdrawMethod) { showMsg('withdraw-msg', 'Please select a method.', 'error'); return; }
-    if (!number || number.length < 11) { showMsg('withdraw-msg', 'Please enter a valid number.', 'error'); return; }
-    if (amount > balance) { showMsg('withdraw-msg', 'Insufficient balance!', 'error'); return; }
-    await addDoc(collection(db, 'transactions'), { uid: currentUser.uid, email: currentUser.email, amount, method: selectedWithdrawMethod, number, type: 'withdraw', status: 'pending', created_at: serverTimestamp() });
-    await updateDoc(doc(db, 'users', currentUser.uid), { balance: balance - amount });
-    document.getElementById('wallet-balance').textContent = balance - amount;
-    document.getElementById('nav-balance').textContent = balance - amount;
-    showMsg('withdraw-msg', 'Withdrawal request sent! Admin will process soon. ✅', 'success');
-    setTimeout(() => closeModal('withdraw-modal'), 2500);
-    await loadTransactions(currentUser.uid);
+    if (!amount||amount<50) { showMsg('withdraw-msg','Minimum withdrawal is 50 TK.','error'); return; }
+    if (!selectedWithdrawMethod) { showMsg('withdraw-msg','Please select a method.','error'); return; }
+    if (!number||number.length<11) { showMsg('withdraw-msg','Please enter a valid number.','error'); return; }
+    if (amount>balance) { showMsg('withdraw-msg','Insufficient balance!','error'); return; }
+    await addDoc(collection(db,'transactions'), { uid:currentUser.uid, email:currentUser.email, amount, method:selectedWithdrawMethod, number, type:'withdraw', status:'pending', created_at:serverTimestamp() });
+    await updateDoc(doc(db,'users',currentUser.uid), { balance: balance-amount });
+    document.getElementById('wallet-balance').textContent = balance-amount;
+    document.getElementById('nav-balance').textContent = balance-amount;
+    showMsg('withdraw-msg','Withdrawal request sent! ✅','success');
+    setTimeout(() => { closeModal('withdraw-modal'); loadTransactionStatus(currentUser.uid); }, 2000);
   };
 
   window.closeModal = (id) => document.getElementById(id).classList.remove('open');
-  window.logOut = async () => { await signOut(auth); window.location.href = 'index.html'; };
 
   function showMsg(id, msg, type) {
-    const el = document.getElementById(id);
-    el.textContent = msg; el.className = 'msg ' + type;
-    setTimeout(() => el.className = 'msg', 4000);
+    const el = document.getElementById(id); el.textContent = msg; el.className = 'msg '+type;
+    setTimeout(() => el.className='msg', 4000);
   }
 </script>
 </body>
