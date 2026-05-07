@@ -1,211 +1,373 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Admin Panel - Tournament App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --gold: #FFD700; --orange: #FF6B00; --dark: #0A0A0F; --card: #12121A; --border: #2A2A3A; --text: #E8E8F0; --muted: #6B6B80; --green: #5CFF8A; --red: #FF6B6B; }
-    body { background: var(--dark); color: var(--text); font-family: 'Rajdhani', sans-serif; min-height: 100vh; padding-bottom: 40px; }
-    .header { background: var(--card); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-family: 'Bebas Neue', sans-serif; color: var(--orange); letter-spacing: 1px; }
-    .tabs { display: flex; background: #1a1a24; padding: 5px; margin: 20px; border-radius: 8px; gap: 5px; overflow-x: auto; }
-    .tab { flex: 1; min-width: 100px; padding: 10px; text-align: center; cursor: pointer; border-radius: 6px; font-weight: 600; transition: 0.3s; color: var(--muted); white-space: nowrap; }
-    .tab.active { background: var(--orange); color: white; }
-    .tab-content { display: none; padding: 0 20px; }
-    .tab-content.active { display: block; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-    .tx-actions { display: flex; gap: 10px; margin-top: 10px; }
-    .btn-approve { background: var(--green); color: black; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
-    .btn-reject { background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
-    input, select { width: 100%; padding: 12px; margin-top: 5px; background: #1a1a24; border: 1px solid var(--border); color: white; border-radius: 6px; margin-bottom: 10px; }
-  </style>
-</head>
-<body>
+import { useState, useEffect } from "react";
 
-  <div class="header">
-    <h1>ADMIN PANEL</h1>
-    <button onclick="logOut()" style="background:none; border:1px solid var(--orange); color:var(--orange); padding:5px 10px; border-radius:5px; cursor:pointer;">LOGOUT</button>
-  </div>
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+const MOCK_TRANSACTIONS = [
+  { id: "tx1", type: "deposit",  email: "player1@gmail.com", uid: "u001", amount: 500,  number: "017XXXXXXXX", status: "pending" },
+  { id: "tx2", type: "withdraw", email: "sniper99@gmail.com", uid: "u002", amount: 300,  number: "018XXXXXXXX", status: "pending" },
+  { id: "tx3", type: "deposit",  email: "alpha_gamer@gmail.com", uid: "u003", amount: 1000, number: "019XXXXXXXX", status: "pending" },
+];
 
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab(event, 'requests')">REQUESTS</div>
-    <div class="tab" onclick="switchTab(event, 'tournaments')">TOURNAMENTS</div>
-    <div class="tab" onclick="switchTab(event, 'winners')">WINNERS</div>
-  </div>
+const MOCK_TOURNAMENTS = [
+  { id: "m1", title: "Friday Frenzy",     fee: 50,  teamType: 1, prize1: 2000, prize2: 1000, prize3: 500,  maxPlayers: 100, joined: 64,  time: "2026-05-10T18:00", status: "open" },
+  { id: "m2", title: "Duo Domination",    fee: 100, teamType: 2, prize1: 5000, prize2: 2500, prize3: 1000, maxPlayers: 50,  joined: 30,  time: "2026-05-11T20:00", status: "open" },
+  { id: "m3", title: "Squad Showdown",    fee: 200, teamType: 4, prize1: 10000, prize2: 5000, prize3: 2000, maxPlayers: 80,  joined: 80,  time: "2026-05-09T15:00", status: "open" },
+];
 
-  <div id="tab-requests" class="tab-content active">
-    <div id="requests-list"></div>
-  </div>
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const teamLabel = (t) => t === 1 ? "SOLO" : t === 2 ? "DUO" : "SQUAD";
+const teamColor = (t) => t === 1 ? "#FFD700" : t === 2 ? "#5CFF8A" : "#FF6B00";
 
-  <div id="tab-tournaments" class="tab-content">
-    <div class="card">
-      <h3 style="color:var(--orange)">Create Tournament</h3>
-      <input type="text" id="t-title" placeholder="Match Title">
-      <div style="display:flex; gap:10px">
-        <input type="number" id="t-prize1" placeholder="1st Prize">
-        <input type="number" id="t-prize2" placeholder="2nd Prize">
-        <input type="number" id="t-prize3" placeholder="3rd Prize">
-      </div>
-      <div style="display:flex; gap:10px">
-        <input type="number" id="t-fee" placeholder="Entry Fee (Per Person)">
-        <select id="t-type">
-          <option value="1">Solo</option>
-          <option value="2">Duo</option>
-          <option value="4">Squad</option>
-        </select>
-      </div>
-      <input type="number" id="t-max" placeholder="Max Total Players">
-      <input type="datetime-local" id="t-time">
-      <button onclick="createTournament()" style="width:100%; padding:12px; background:var(--orange); border:none; color:white; font-weight:bold; border-radius:5px; cursor:pointer;">ADD TOURNAMENT</button>
+function toast(msg, type = "success") {
+  const el = document.createElement("div");
+  el.textContent = msg;
+  el.style.cssText = `
+    position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+    background:${type === "success" ? "#5CFF8A" : type === "error" ? "#FF6B6B" : "#FFD700"};
+    color:#0A0A0F; padding:12px 28px; border-radius:8px; font-family:'Rajdhani',sans-serif;
+    font-weight:700; font-size:15px; z-index:9999; letter-spacing:1px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5); animation: slideUp 0.3s ease;
+  `;
+  const style = document.createElement("style");
+  style.textContent = `@keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }`;
+  document.head.appendChild(style);
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+function StatBadge({ label, value, color }) {
+  return (
+    <div style={{ background: "#12121A", border: `1px solid ${color}22`, borderRadius: 10, padding: "12px 18px", textAlign: "center", minWidth: 100 }}>
+      <div style={{ color, fontSize: 22, fontWeight: 700, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 1 }}>{value}</div>
+      <div style={{ color: "#6B6B80", fontSize: 12, fontWeight: 600, letterSpacing: 1 }}>{label}</div>
     </div>
-    <div id="tournament-list"></div>
-  </div>
+  );
+}
 
-  <div id="tab-winners" class="tab-content">
-    <div class="card">
-      <h3 style="color:var(--gold)">Select Winners</h3>
-      <select id="winner-match-select"><option value="">Select Match</option></select>
-      <input type="text" id="w1" placeholder="1st Place UID">
-      <input type="text" id="w2" placeholder="2nd Place UID">
-      <input type="text" id="w3" placeholder="3rd Place UID">
-      <button onclick="distributePrizes()" style="width:100%; padding:10px; background:var(--green); border:none; color:black; font-weight:bold; border-radius:5px;">DISTRIBUTE PRIZES & DELETE MATCH</button>
-    </div>
-  </div>
+function RequestsTab({ transactions, setTransactions }) {
+  const pending = transactions.filter(tx => tx.status === "pending");
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, increment, getDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0",
-      authDomain: "tournament-app-4a050.firebaseapp.com",
-      projectId: "tournament-app-4a050",
-      storageBucket: "tournament-app-4a050.appspot.com",
-      messagingSenderId: "811957533858", 
-      appId: "1:811957533858:web:1d1f0f916c0aba5eccebfb"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    onAuthStateChanged(auth, (user) => {
-      if (!user) window.location.href = 'index.html';
-      else { loadRequests(); loadTournaments(); }
-    });
-
-    // 1. Transaction Handle
-    window.handleTx = async (id, uid, amt, type, action) => {
-      try {
-        if(action === 'approve') {
-          await updateDoc(doc(db, 'transactions', id), { status: 'approved' });
-          if(type === 'deposit') await updateDoc(doc(db, 'users', uid), { balance: increment(amt) });
-          alert("Approved ✅");
-        } else {
-          await updateDoc(doc(db, 'transactions', id), { status: 'rejected' });
-          if(type === 'withdraw') await updateDoc(doc(db, 'users', uid), { balance: increment(amt) });
-          alert("Rejected & Refunded ❌");
-        }
-      } catch(e) { alert(e.message); }
-    };
-
-    // 2. Tournament Logic (FIXED)
-    window.createTournament = async () => {
-      const title = document.getElementById('t-title').value;
-      const fee = Number(document.getElementById('t-fee').value);
-      const type = Number(document.getElementById('t-type').value);
-      const time = document.getElementById('t-time').value;
-
-      if(!title || !time || isNaN(fee)) return alert("Please fill all fields!");
-
-      await addDoc(collection(db, 'tournaments'), { 
-        title, 
-        prize1: Number(document.getElementById('t-prize1').value),
-        prize2: Number(document.getElementById('t-prize2').value),
-        prize3: Number(document.getElementById('t-prize3').value),
-        fee: fee,
-        teamType: type, 
-        maxPlayers: Number(document.getElementById('t-max').value),
-        joined: 0,
-        time: time,
-        status: 'open'
-      });
-      alert("Tournament Added! ✅");
-    };
-
-    function loadTournaments() {
-      const list = document.getElementById('tournament-list');
-      const select = document.getElementById('winner-match-select');
-      onSnapshot(collection(db, 'tournaments'), (snap) => {
-        list.innerHTML = '<h3>Active Matches</h3>';
-        select.innerHTML = '<option value="">Select Match</option>';
-         snap.forEach(d => {
-          const t = d.data();
-          list.innerHTML += `<div class="card"><b>${t.title}</b><br>Fee: ৳${t.fee} | Type: ${t.teamType==1?'Solo':t.teamType==2?'Duo':'Squad'}</div>`;
-          select.innerHTML += `<option value="${d.id}">${t.title}</option>`;
-        });
-      });
+  const handle = (id, uid, amt, type, action) => {
+    setTransactions(prev => prev.map(tx => {
+      if (tx.id !== id) return tx;
+      const newStatus = action === "approve" ? "approved" : "rejected";
+      return { ...tx, status: newStatus };
+    }));
+    if (action === "approve") {
+      toast(`✅ Deposit approved! ৳${amt} added to ${uid}`);
+    } else {
+      toast(`❌ Rejected${type === "withdraw" ? " & ৳" + amt + " refunded" : ""}`, "error");
     }
+  };
 
-    // 3. Winner Prize logic (FIXED UID MATCHING)
-    window.distributePrizes = async () => {
-      const mId = document.getElementById('winner-match-select').value;
-      const wUIDs = [
-        document.getElementById('w1').value.trim(),
-        document.getElementById('w2').value.trim(),
-        document.getElementById('w3').value.trim()
-      ];
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <StatBadge label="PENDING" value={pending.length} color="#FFD700" />
+        <StatBadge label="TOTAL" value={transactions.length} color="#FF6B00" />
+        <StatBadge label="APPROVED" value={transactions.filter(t => t.status === "approved").length} color="#5CFF8A" />
+        <StatBadge label="REJECTED" value={transactions.filter(t => t.status === "rejected").length} color="#FF6B6B" />
+      </div>
 
-      if(!mId) return alert("Select a match first!");
+      {pending.length === 0 && (
+        <div style={{ textAlign: "center", padding: "60px 0", color: "#6B6B80" }}>
+          <div style={{ fontSize: 48, marginBottom: 8 }}>✓</div>
+          <div style={{ fontWeight: 600, letterSpacing: 1 }}>ALL REQUESTS HANDLED</div>
+        </div>
+      )}
 
-      const tSnap = await getDoc(doc(db, 'tournaments', mId));
-      const t = tSnap.data();
-      const prizes = [t.prize1, t.prize2, t.prize3];
-
-      for(let i=0; i<3; i++) {
-        if(wUIDs[i]) {
-          // UID স্ট্রিং বা নাম্বার যাই হোক খুঁজে বের করবে
-          const q = query(collection(db, 'users'), where('uid', 'in', [wUIDs[i], Number(wUIDs[i])]));
-          const uSnap = await getDocs(q);
-          uSnap.forEach(async (uDoc) => {
-            await updateDoc(doc(db, 'users', uDoc.id), { balance: increment(prizes[i]) });
-          });
-        }
-      }
-      
-      await deleteDoc(doc(db, 'tournaments', mId));
-      alert("Prizes Distributed & Match Closed! 🏆");
-    };
-
-    function loadRequests() {
-      onSnapshot(query(collection(db, 'transactions'), where('status', '==', 'pending')), (snap) => {
-        const list = document.getElementById('requests-list');
-        list.innerHTML = '';
-        snap.forEach(d => {
-          const tx = d.data();
-          list.innerHTML += `<div class="card">
-            <b>${tx.type.toUpperCase()}</b> | ${tx.email}<br>
-            Amount: ৳${tx.amount} | Num: ${tx.number}
-            <div class="tx-actions">
-              <button class="btn-approve" onclick="handleTx('${d.id}', '${tx.uid}', ${tx.amount}, '${tx.type}', 'approve')">Approve</button>
-              <button class="btn-reject" onclick="handleTx('${d.id}', '${tx.uid}', ${tx.amount}, '${tx.type}', 'reject')">Reject</button>
+      {pending.map(tx => (
+        <div key={tx.id} style={{ background: "#12121A", border: "1px solid #2A2A3A", borderRadius: 12, padding: 16, marginBottom: 12, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: tx.type === "deposit" ? "#5CFF8A" : "#FF6B6B", borderRadius: "12px 0 0 12px" }} />
+          <div style={{ paddingLeft: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <span style={{
+                background: tx.type === "deposit" ? "#5CFF8A22" : "#FF6B6B22",
+                color: tx.type === "deposit" ? "#5CFF8A" : "#FF6B6B",
+                padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: 1
+              }}>{tx.type.toUpperCase()}</span>
+              <span style={{ color: "#FFD700", fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 1 }}>৳{tx.amount}</span>
             </div>
-          </div>`;
-        });
-      });
-    }
+            <div style={{ color: "#E8E8F0", fontWeight: 600, marginBottom: 2 }}>{tx.email}</div>
+            <div style={{ color: "#6B6B80", fontSize: 13 }}>UID: {tx.uid} &nbsp;|&nbsp; 📱 {tx.number}</div>
+            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+              <button onClick={() => handle(tx.id, tx.uid, tx.amount, tx.type, "approve")}
+                style={{ flex: 1, padding: "10px 0", background: "#5CFF8A", color: "#0A0A0F", border: "none", borderRadius: 7, fontWeight: 700, cursor: "pointer", fontFamily: "'Rajdhani', sans-serif", fontSize: 14, letterSpacing: 1 }}>
+                ✓ APPROVE
+              </button>
+              <button onClick={() => handle(tx.id, tx.uid, tx.amount, tx.type, "reject")}
+                style={{ flex: 1, padding: "10px 0", background: "#FF6B6B22", color: "#FF6B6B", border: "1px solid #FF6B6B", borderRadius: 7, fontWeight: 700, cursor: "pointer", fontFamily: "'Rajdhani', sans-serif", fontSize: 14, letterSpacing: 1 }}>
+                ✕ REJECT
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-    window.switchTab = (e, tab) => {
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.getElementById('tab-' + tab).classList.add('active');
-      e.target.classList.add('active');
-    };
-    window.logOut = () => signOut(auth);
-  </script>
-</body>
-</html>
+function TournamentsTab({ tournaments, setTournaments }) {
+  const [form, setForm] = useState({ title: "", prize1: "", prize2: "", prize3: "", fee: "", teamType: 1, maxPlayers: "", time: "" });
+  const [creating, setCreating] = useState(false);
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const create = () => {
+    if (!form.title || !form.fee || !form.time || !form.maxPlayers) return toast("Fill all required fields!", "error");
+    setCreating(true);
+    setTimeout(() => {
+      const newT = {
+        id: "m" + Date.now(), title: form.title,
+        prize1: Number(form.prize1), prize2: Number(form.prize2), prize3: Number(form.prize3),
+        fee: Number(form.fee), teamType: Number(form.teamType),
+        maxPlayers: Number(form.maxPlayers), joined: 0,
+        time: form.time, status: "open"
+      };
+      setTournaments(prev => [newT, ...prev]);
+      setForm({ title: "", prize1: "", prize2: "", prize3: "", fee: "", teamType: 1, maxPlayers: "", time: "" });
+      setCreating(false);
+      toast("🏆 Tournament created!");
+    }, 700);
+  };
+
+  const remove = (id) => {
+    setTournaments(prev => prev.filter(t => t.id !== id));
+    toast("Match deleted", "warn");
+  };
+
+  const inp = (placeholder, key, type = "text") => (
+    <input
+      type={type} placeholder={placeholder} value={form[key]}
+      onChange={e => set(key, e.target.value)}
+      style={{ width: "100%", padding: "11px 14px", background: "#0A0A0F", border: "1px solid #2A2A3A", color: "#E8E8F0", borderRadius: 7, marginBottom: 10, fontFamily: "'Rajdhani', sans-serif", fontSize: 14, outline: "none" }}
+    />
+  );
+
+  return (
+    <div>
+      {/* Create form */}
+      <div style={{ background: "#12121A", border: "1px solid #FF6B0044", borderRadius: 14, padding: 18, marginBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 4, height: 22, background: "#FF6B00", borderRadius: 2 }} />
+          <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 18, color: "#FF6B00", letterSpacing: 2 }}>CREATE TOURNAMENT</span>
+        </div>
+        {inp("Match Title *", "title")}
+        <div style={{ display: "flex", gap: 8 }}>
+          {inp("1st Prize ৳", "prize1", "number")}
+          {inp("2nd Prize ৳", "prize2", "number")}
+          {inp("3rd Prize ৳", "prize3", "number")}
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {inp("Entry Fee ৳ *", "fee", "number")}
+          <select value={form.teamType} onChange={e => set("teamType", e.target.value)}
+            style={{ flex: 1, padding: "11px 14px", background: "#0A0A0F", border: "1px solid #2A2A3A", color: "#E8E8F0", borderRadius: 7, marginBottom: 10, fontFamily: "'Rajdhani',sans-serif", fontSize: 14, outline: "none" }}>
+            <option value={1}>Solo</option>
+            <option value={2}>Duo</option>
+            <option value={4}>Squad</option>
+          </select>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {inp("Max Players *", "maxPlayers", "number")}
+          <input type="datetime-local" value={form.time} onChange={e => set("time", e.target.value)}
+            style={{ flex: 1, padding: "11px 14px", background: "#0A0A0F", border: "1px solid #2A2A3A", color: "#E8E8F0", borderRadius: 7, marginBottom: 10, fontFamily: "'Rajdhani',sans-serif", fontSize: 14, outline: "none" }} />
+        </div>
+        <button onClick={create} disabled={creating}
+          style={{ width: "100%", padding: 13, background: creating ? "#2A2A3A" : "linear-gradient(90deg,#FF6B00,#FF9500)", border: "none", color: "white", fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", fontSize: 16, letterSpacing: 2, borderRadius: 8, cursor: creating ? "default" : "pointer", transition: "0.3s" }}>
+          {creating ? "CREATING..." : "ADD TOURNAMENT"}
+        </button>
+      </div>
+
+      {/* List */}
+      <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 16, color: "#6B6B80", letterSpacing: 2, marginBottom: 12 }}>ACTIVE MATCHES ({tournaments.length})</div>
+      {tournaments.map(t => {
+        const fill = Math.round((t.joined / t.maxPlayers) * 100);
+        const tc = teamColor(t.teamType);
+        return (
+          <div key={t.id} style={{ background: "#12121A", border: "1px solid #2A2A3A", borderRadius: 12, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: "#E8E8F0", marginBottom: 4 }}>{t.title}</div>
+                <span style={{ background: tc + "22", color: tc, padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: 1 }}>{teamLabel(t.teamType)}</span>
+              </div>
+              <button onClick={() => remove(t.id)} style={{ background: "none", border: "1px solid #FF6B6B44", color: "#FF6B6B", padding: "4px 10px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 700 }}>✕ DELETE</button>
+            </div>
+            <div style={{ display: "flex", gap: 16, marginBottom: 10 }}>
+              <div><span style={{ color: "#6B6B80", fontSize: 12 }}>ENTRY</span><br /><span style={{ color: "#FFD700", fontWeight: 700 }}>৳{t.fee}</span></div>
+              <div><span style={{ color: "#6B6B80", fontSize: 12 }}>1ST</span><br /><span style={{ color: "#5CFF8A", fontWeight: 700 }}>৳{t.prize1}</span></div>
+              <div><span style={{ color: "#6B6B80", fontSize: 12 }}>2ND</span><br /><span style={{ color: "#E8E8F0", fontWeight: 700 }}>৳{t.prize2}</span></div>
+              <div><span style={{ color: "#6B6B80", fontSize: 12 }}>3RD</span><br /><span style={{ color: "#CD7F32", fontWeight: 700 }}>৳{t.prize3}</span></div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12, color: "#6B6B80" }}>
+              <span>PLAYERS</span><span style={{ color: fill >= 100 ? "#FF6B6B" : "#E8E8F0" }}>{t.joined}/{t.maxPlayers}</span>
+            </div>
+            <div style={{ background: "#0A0A0F", borderRadius: 4, height: 6, overflow: "hidden" }}>
+              <div style={{ width: `${Math.min(fill, 100)}%`, height: "100%", background: fill >= 100 ? "#FF6B6B" : fill > 70 ? "#FFD700" : "#5CFF8A", borderRadius: 4, transition: "width 0.6s ease" }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function WinnersTab({ tournaments, setTournaments }) {
+  const [matchId, setMatchId] = useState("");
+  const [uids, setUids] = useState(["", "", ""]);
+  const [distributing, setDistributing] = useState(false);
+  const [log, setLog] = useState([]);
+
+  const setUid = (i, v) => setUids(prev => prev.map((u, idx) => idx === i ? v : u));
+
+  const distribute = () => {
+    if (!matchId) return toast("Select a match first!", "error");
+    if (!uids[0] && !uids[1] && !uids[2]) return toast("Enter at least 1 winner UID!", "error");
+
+    const match = tournaments.find(t => t.id === matchId);
+    if (!match) return toast("Match not found!", "error");
+
+    setDistributing(true);
+    const prizes = [match.prize1, match.prize2, match.prize3];
+    const positions = ["🥇 1st", "🥈 2nd", "🥉 3rd"];
+    const entries = [];
+
+    setTimeout(() => {
+      uids.forEach((uid, i) => {
+        if (uid.trim()) {
+          entries.push({ uid: uid.trim(), prize: prizes[i], position: positions[i], match: match.title, time: new Date().toLocaleTimeString() });
+        }
+      });
+
+      setLog(prev => [...entries, ...prev]);
+      setTournaments(prev => prev.filter(t => t.id !== matchId));
+      setMatchId("");
+      setUids(["", "", ""]);
+      setDistributing(false);
+      toast(`🏆 Prizes distributed! ${entries.length} winner(s) rewarded.`);
+    }, 900);
+  };
+
+  const rankColors = ["#FFD700", "#C0C0C0", "#CD7F32"];
+
+  return (
+    <div>
+      <div style={{ background: "#12121A", border: "1px solid #FFD70033", borderRadius: 14, padding: 18, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 4, height: 22, background: "#FFD700", borderRadius: 2 }} />
+          <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 18, color: "#FFD700", letterSpacing: 2 }}>DISTRIBUTE PRIZES</span>
+        </div>
+
+        <select value={matchId} onChange={e => setMatchId(e.target.value)}
+          style={{ width: "100%", padding: "11px 14px", background: "#0A0A0F", border: "1px solid #2A2A3A", color: "#E8E8F0", borderRadius: 7, marginBottom: 14, fontFamily: "'Rajdhani',sans-serif", fontSize: 14, outline: "none" }}>
+          <option value="">— Select Match —</option>
+          {tournaments.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+        </select>
+
+        {["1st Place UID 🥇", "2nd Place UID 🥈", "3rd Place UID 🥉"].map((label, i) => (
+          <div key={i} style={{ position: "relative", marginBottom: 10 }}>
+            <input placeholder={label} value={uids[i]} onChange={e => setUid(i, e.target.value)}
+              style={{ width: "100%", padding: "11px 14px 11px 44px", background: "#0A0A0F", border: `1px solid ${rankColors[i]}44`, color: "#E8E8F0", borderRadius: 7, fontFamily: "'Rajdhani',sans-serif", fontSize: 14, outline: "none" }} />
+            <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: rankColors[i], fontWeight: 700, fontSize: 14 }}>#{i + 1}</div>
+          </div>
+        ))}
+
+        {matchId && tournaments.find(t => t.id === matchId) && (
+          <div style={{ background: "#0A0A0F", borderRadius: 8, padding: 12, marginBottom: 14, display: "flex", gap: 16 }}>
+            {(() => {
+              const m = tournaments.find(t => t.id === matchId);
+              return [m.prize1, m.prize2, m.prize3].map((p, i) => (
+                <div key={i} style={{ textAlign: "center" }}>
+                  <div style={{ color: rankColors[i], fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", fontSize: 18 }}>৳{p}</div>
+                  <div style={{ color: "#6B6B80", fontSize: 11 }}>{i + 1}{i === 0 ? "ST" : i === 1 ? "ND" : "RD"}</div>
+                </div>
+              ));
+            })()}
+          </div>
+        )}
+
+        <button onClick={distribute} disabled={distributing}
+          style={{ width: "100%", padding: 13, background: distributing ? "#2A2A3A" : "linear-gradient(90deg,#FFD700,#FF9500)", border: "none", color: distributing ? "#6B6B80" : "#0A0A0F", fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", fontSize: 16, letterSpacing: 2, borderRadius: 8, cursor: distributing ? "default" : "pointer", transition: "0.3s" }}>
+          {distributing ? "DISTRIBUTING..." : "DISTRIBUTE PRIZES & CLOSE MATCH"}
+        </button>
+      </div>
+
+      {log.length > 0 && (
+        <div>
+          <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 15, color: "#6B6B80", letterSpacing: 2, marginBottom: 10 }}>DISTRIBUTION LOG</div>
+          {log.map((entry, i) => (
+            <div key={i} style={{ background: "#12121A", border: "1px solid #2A2A3A", borderRadius: 10, padding: 12, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{entry.uid}</div>
+                <div style={{ color: "#6B6B80", fontSize: 12 }}>{entry.match} · {entry.position} · {entry.time}</div>
+              </div>
+              <div style={{ color: "#5CFF8A", fontWeight: 700, fontFamily: "'Bebas Neue',sans-serif", fontSize: 18 }}>+৳{entry.prize}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
+export default function AdminPanel() {
+  const [tab, setTab] = useState("requests");
+  const [transactions, setTransactions] = useState(MOCK_TRANSACTIONS);
+  const [tournaments, setTournaments] = useState(MOCK_TOURNAMENTS);
+
+  const tabs = [
+    { id: "requests",    label: "REQUESTS",    icon: "📥" },
+    { id: "tournaments", label: "MATCHES",     icon: "🎮" },
+    { id: "winners",     label: "WINNERS",     icon: "🏆" },
+  ];
+
+  const pendingCount = transactions.filter(t => t.status === "pending").length;
+
+  return (
+    <div style={{ background: "#0A0A0F", minHeight: "100vh", color: "#E8E8F0", fontFamily: "'Rajdhani', sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet" />
+
+      {/* Header */}
+      <div style={{ background: "#12121A", borderBottom: "1px solid #2A2A3A", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 36, height: 36, background: "linear-gradient(135deg,#FF6B00,#FFD700)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⚡</div>
+          <div>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, color: "#FF6B00", letterSpacing: 2, lineHeight: 1 }}>ADMIN PANEL</div>
+            <div style={{ fontSize: 11, color: "#6B6B80", letterSpacing: 1 }}>TOURNAMENT MANAGER</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 8, height: 8, background: "#5CFF8A", borderRadius: "50%", boxShadow: "0 0 6px #5CFF8A" }} />
+          <span style={{ fontSize: 12, color: "#5CFF8A", fontWeight: 600 }}>LIVE</span>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", background: "#12121A", borderBottom: "1px solid #2A2A3A", padding: "0 10px" }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{
+              flex: 1, padding: "14px 4px", background: "none", border: "none", cursor: "pointer",
+              fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, letterSpacing: 1.5,
+              color: tab === t.id ? "#FF6B00" : "#6B6B80",
+              borderBottom: tab === t.id ? "2px solid #FF6B00" : "2px solid transparent",
+              transition: "0.2s", position: "relative"
+            }}>
+            <div>{t.icon}</div>
+            <div>{t.label}</div>
+            {t.id === "requests" && pendingCount > 0 && (
+              <div style={{ position: "absolute", top: 8, right: "50%", transform: "translateX(16px)", background: "#FF6B6B", color: "white", borderRadius: "50%", width: 18, height: 18, fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700 }}>{pendingCount}</div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: 16, maxWidth: 600, margin: "0 auto" }}>
+        {tab === "requests"    && <RequestsTab transactions={transactions} setTransactions={setTransactions} />}
+        {tab === "tournaments" && <TournamentsTab tournaments={tournaments} setTournaments={setTournaments} />}
+        {tab === "winners"     && <WinnersTab tournaments={tournaments} setTournaments={setTournaments} />}
+      </div>
+    </div>
+  );
+}
