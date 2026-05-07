@@ -11,8 +11,8 @@
     body { background: var(--dark); color: var(--text); font-family: 'Rajdhani', sans-serif; min-height: 100vh; padding-bottom: 40px; }
     .header { background: var(--card); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .header h1 { font-family: 'Bebas Neue', sans-serif; color: var(--orange); letter-spacing: 1px; }
-    .tabs { display: flex; background: #1a1a24; padding: 5px; margin: 20px; border-radius: 8px; gap: 5px; }
-    .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; border-radius: 6px; font-weight: 600; transition: 0.3s; color: var(--muted); }
+    .tabs { display: flex; background: #1a1a24; padding: 5px; margin: 20px; border-radius: 8px; gap: 5px; overflow-x: auto; }
+    .tab { flex: 1; min-width: 100px; padding: 10px; text-align: center; cursor: pointer; border-radius: 6px; font-weight: 600; transition: 0.3s; color: var(--muted); white-space: nowrap; }
     .tab.active { background: var(--orange); color: white; }
     .tab-content { display: none; padding: 0 20px; }
     .tab-content.active { display: block; }
@@ -20,11 +20,10 @@
     .tx-type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
     .tx-type.deposit { background: rgba(92, 255, 138, 0.2); color: var(--green); }
     .tx-type.withdraw { background: rgba(255, 107, 107, 0.2); color: var(--red); }
-    .tx-email { font-weight: 700; color: var(--gold); }
-    .tx-details { margin: 8px 0; color: var(--text); font-size: 14px; }
     .tx-actions { display: flex; gap: 10px; margin-top: 10px; }
     .btn-approve { background: var(--green); color: black; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
     .btn-reject { background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
+    input, select { width: 100%; padding: 10px; margin-top: 5px; background: #1a1a24; border: 1px solid var(--border); color: white; border-radius: 5px; margin-bottom: 10px; }
     .empty-state { text-align: center; color: var(--muted); padding: 40px; }
   </style>
 </head>
@@ -36,30 +35,62 @@
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('requests')">REQUESTS</div>
-    <div class="tab" onclick="switchTab('users')">USERS</div>
+    <div class="tab active" onclick="switchTab(event, 'requests')">REQUESTS</div>
+    <div class="tab" onclick="switchTab(event, 'tournaments')">TOURNAMENTS</div>
+    <div class="tab" onclick="switchTab(event, 'winners')">WINNERS</div>
+    <div class="tab" onclick="switchTab(event, 'users')">USERS</div>
   </div>
 
   <div id="tab-requests" class="tab-content active">
-    <div id="requests-list">
-      <div class="empty-state">Loading pending requests...</div>
+    <div id="requests-list"><div class="empty-state">Loading requests...</div></div>
+  </div>
+
+  <div id="tab-tournaments" class="tab-content">
+    <div class="card">
+      <h3 style="color:var(--orange)">Create Tournament</h3>
+      <input type="text" id="t-title" placeholder="Match Title">
+      <div style="display:flex; gap:10px">
+        <input type="number" id="t-prize1" placeholder="1st Prize">
+        <input type="number" id="t-prize2" placeholder="2nd Prize">
+        <input type="number" id="t-prize3" placeholder="3rd Prize">
+      </div>
+      <div style="display:flex; gap:10px">
+        <input type="number" id="t-fee" placeholder="Entry Fee Per Person">
+        <select id="t-type">
+          <option value="1">Solo</option>
+          <option value="2">Duo</option>
+          <option value="4">Squad</option>
+        </select>
+      </div>
+      <input type="number" id="t-max" placeholder="Max Total Players (e.g. 100)">
+      <input type="datetime-local" id="t-time">
+      <button onclick="createTournament()" style="width:100%; padding:12px; background:var(--orange); border:none; color:white; font-weight:bold; border-radius:5px; cursor:pointer;">ADD TOURNAMENT</button>
+    </div>
+    <div id="tournament-list"></div>
+  </div>
+
+  <div id="tab-winners" class="tab-content">
+    <div class="card">
+      <h3 style="color:var(--gold)">Select Winners</h3>
+      <select id="winner-match-select"><option value="">Select Match</option></select>
+      <input type="number" id="w1" placeholder="1st Place UID (10 Digit)">
+      <input type="number" id="w2" placeholder="2nd Place UID (10 Digit)">
+      <input type="number" id="w3" placeholder="3rd Place UID (10 Digit)">
+      <button onclick="distributePrizes()" style="width:100%; padding:10px; background:var(--green); border:none; color:black; font-weight:bold; border-radius:5px;">DISTRIBUTE PRIZES</button>
     </div>
   </div>
 
   <div id="tab-users" class="tab-content">
-    <div id="users-list">
-      <div class="empty-state">Loading users...</div>
-    </div>
+    <div id="users-list"></div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, increment, getDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
-    // ✅ আপনার প্রোজেক্টের সঠিক ID ব্যবহার করা হয়েছে
     const firebaseConfig = {
-      apiKey: "AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0", // এটি আপনার আসল API Key কিনা তা আবার চেক করুন
+      apiKey: "AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0",
       authDomain: "tournament-app-4a050.firebaseapp.com",
       projectId: "tournament-app-4a050",
       storageBucket: "tournament-app-4a050.appspot.com",
@@ -72,90 +103,131 @@
     const auth = getAuth(app);
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = 'index.html';
-      } else {
-        loadTransactions();
-        loadUsers();
-      }
+      if (!user) window.location.href = 'index.html';
+      else { loadRequests(); loadTournaments(); loadUsers(); }
     });
 
-    function loadTransactions() {
+    // 1. Requests Logic with REFUND
+    function loadRequests() {
       const list = document.getElementById('requests-list');
-      // Collection: 'transactions' থেকে status 'pending' গুলো দেখাবে
-      const q = query(collection(db, 'transactions'), where('status', '==', 'pending'));
-
-      onSnapshot(q, (snap) => {
+      onSnapshot(query(collection(db, 'transactions'), where('status', '==', 'pending')), (snap) => {
         list.innerHTML = '';
-        if (snap.empty) {
-          list.innerHTML = '<div class="empty-state">No pending requests found!</div>';
-          return;
-        }
-
+        if (snap.empty) { list.innerHTML = '<div class="empty-state">No pending requests.</div>'; return; }
         snap.forEach(d => {
           const tx = d.data();
-          const id = d.id;
           list.innerHTML += `
             <div class="card">
-              <div class="tx-type ${tx.type}">${tx.type ? tx.type.toUpperCase() : 'UNKNOWN'}</div>
-              <div class="tx-email">${tx.email || 'No Email'}</div>
-              <div class="tx-details">
-                <b>Amount:</b> ৳${tx.amount} <br>
-                <b>Method:</b> ${tx.method} | <b>Number:</b> ${tx.number}
-              </div>
+              <div class="tx-type ${tx.type}">${tx.type.toUpperCase()}</div>
+              <div style="font-weight:bold; color:var(--gold)">${tx.email}</div>
+              <div>Amount: ৳${tx.amount} | Num: ${tx.number}</div>
               <div class="tx-actions">
-                <button class="btn-approve" onclick="handleTx('${id}', '${tx.uid}', ${tx.amount}, '${tx.type}', 'approve')">Approve</button>
-                <button class="btn-reject" onclick="handleTx('${id}', null, 0, null, 'reject')">Reject</button>
+                <button class="btn-approve" onclick="handleTx('${d.id}', '${tx.uid}', ${tx.amount}, '${tx.type}', 'approve')">Approve</button>
+                <button class="btn-reject" onclick="handleTx('${d.id}', '${tx.uid}', ${tx.amount}, '${tx.type}', 'reject')">Reject</button>
               </div>
             </div>`;
         });
-      }, (err) => {
-        console.error(err);
-        list.innerHTML = '<div class="empty-state" style="color:red">Error: Permission Denied! (Check Firestore Rules)</div>';
       });
     }
 
-    window.handleTx = async (txId, uid, amount, type, action) => {
-      if (!confirm(`Are you sure?`)) return;
-      try {
-        if (action === 'approve') {
-          await updateDoc(doc(db, 'transactions', txId), { status: 'approved' });
-          if (type === 'deposit' && uid) {
-            await updateDoc(doc(db, 'users', uid), { balance: increment(amount) });
-          }
-          alert("Request Approved! ✅");
-        } else {
-          await updateDoc(doc(db, 'transactions', txId), { status: 'rejected' });
-          alert("Request Rejected! ❌");
-        }
-      } catch (e) {
-        alert("Error: " + e.message);
+    window.handleTx = async (id, uid, amt, type, action) => {
+      if(!confirm("Are you sure?")) return;
+      if(action === 'approve') {
+        await updateDoc(doc(db, 'transactions', id), { status: 'approved' });
+        if(type === 'deposit') await updateDoc(doc(db, 'users', uid), { balance: increment(amt) });
+        // Withdraw approve hole balance agei kata hoyeche (User Panel logic onujayi)
+        alert("Approved ✅");
+      } else {
+        await updateDoc(doc(db, 'transactions', id), { status: 'rejected' });
+        // REFUND: Withdraw reject hole taka ferot pabe
+        if(type === 'withdraw') await updateDoc(doc(db, 'users', uid), { balance: increment(amt) });
+        alert("Rejected & Refunded ❌");
       }
+    };
+
+    // 2. Tournament Logic
+    window.createTournament = async () => {
+      const title = document.getElementById('t-title').value;
+      const fee = Number(document.getElementById('t-fee').value);
+      const multiplier = Number(document.getElementById('t-type').value);
+      const time = document.getElementById('t-time').value;
+
+      if(!title || !time) return alert("Please fill title and time");
+
+      await addDoc(collection(db, 'tournaments'), { 
+        title, 
+        prize1: Number(document.getElementById('t-prize1').value),
+        prize2: Number(document.getElementById('t-prize2').value),
+        prize3: Number(document.getElementById('t-prize3').value),
+        fee: fee,
+        teamType: multiplier, // 1 for solo, 4 for squad
+        maxPlayers: Number(document.getElementById('t-max').value),
+        joined: 0,
+        time: time,
+        timestamp: Date.now()
+      });
+      alert("Tournament Added Successfully! ✅");
+    };
+
+    function loadTournaments() {
+      const list = document.getElementById('tournament-list');
+      const select = document.getElementById('winner-match-select');
+      onSnapshot(collection(db, 'tournaments'), (snap) => {
+        list.innerHTML = '<h3 style="margin:15px 0">Active Matches</h3>';
+        select.innerHTML = '<option value="">Select Match</option>';
+        snap.forEach(d => {
+          const t = d.data();
+          const matchTime = new Date(t.time).getTime();
+          if (Date.now() > (matchTime + 60000)) { 
+            deleteDoc(doc(db, 'tournaments', d.id)); 
+          } else {
+            list.innerHTML += `<div class="card"><b>${t.title}</b><br>Type: ${t.teamType==1?'Solo':t.teamType==2?'Duo':'Squad'} | Fee: ৳${t.fee}</div>`;
+            select.innerHTML += `<option value="${d.id}">${t.title}</option>`;
+          }
+        });
+      });
+    }
+
+    // 3. Winner Distribution
+    window.distributePrizes = async () => {
+      const mId = document.getElementById('winner-match-select').value;
+      const uids = [document.getElementById('w1').value, document.getElementById('w2').value, document.getElementById('w3').value];
+      if(!mId) return alert("Select a match");
+
+      const tSnap = await getDoc(doc(db, 'tournaments', mId));
+      const t = tSnap.data();
+      const prizes = [t.prize1, t.prize2, t.prize3];
+
+      for(let i=0; i<3; i++) {
+        if(uids[i] && uids[i].length === 10) {
+          const q = query(collection(db, 'users'), where('uid', '==', uids[i]));
+          const uSnap = await getDocs(q);
+          uSnap.forEach(async (uDoc) => {
+            await updateDoc(doc(db, 'users', uDoc.id), { balance: increment(Number(prizes[i])) });
+          });
+        }
+      }
+      alert("Prizes Distributed! ✅");
+      await deleteDoc(doc(db, 'tournaments', mId));
     };
 
     function loadUsers() {
       const list = document.getElementById('users-list');
-      onSnapshot(collection(db, 'users'), (snap) => {
-        list.innerHTML = '';
+      onSnapshot(collection(db, 'users'), snap => {
+        list.innerHTML = '<h3>Users</h3>';
         snap.forEach(d => {
           const u = d.data();
-          list.innerHTML += `
-            <div class="card">
-              <div style="font-weight:bold; color:var(--gold)">${u.email}</div>
-              <div style="font-size:14px">Balance: ৳${u.balance || 0}</div>
-            </div>`;
+          list.innerHTML += `<div class="card">UID: ${u.uid} | Balance: ৳${u.balance || 0}</div>`;
         });
       });
     }
 
-    window.switchTab = (tab) => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    window.switchTab = (e, tab) => {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.getElementById('tab-' + tab).classList.add('active');
+      e.target.classList.add('active');
     };
-
-    window.logOut = () => signOut(auth).then(() => window.location.href = 'index.html');
+    window.logOut = () => signOut(auth);
   </script>
 </body>
 </html>
