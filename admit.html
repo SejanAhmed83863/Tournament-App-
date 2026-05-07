@@ -3,75 +3,86 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Admin Dashboard - Pro</title>
+  <title>Admin Panel - Tournament App</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
   <style>
-    /* আপানার ডিজাইন হুবহু রাখা হয়েছে */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --gold: #FFD700; --orange: #FF6B00; --dark: #0A0A0F; --card: #12121A; --border: #2A2A3A; --text: #E8E8F0; --muted: #6B6B80; --green: #5CFF8A; --red: #FF6B6B; }
     body { background: var(--dark); color: var(--text); font-family: 'Rajdhani', sans-serif; min-height: 100vh; padding-bottom: 40px; }
-    .header { background: var(--card); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-    .header h1 { font-family: 'Bebas Neue', sans-serif; color: var(--orange); }
-    .tabs { display: flex; background: #1a1a24; padding: 5px; margin: 15px; border-radius: 8px; gap: 5px; overflow-x: auto; }
-    .tab { flex-shrink: 0; padding: 10px 20px; text-align: center; cursor: pointer; border-radius: 6px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    
+    .header { background: var(--card); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-family: 'Bebas Neue', sans-serif; color: var(--orange); letter-spacing: 1px; }
+
+    .tabs { display: flex; background: #1a1a24; padding: 5px; margin: 20px; border-radius: 8px; gap: 5px; overflow-x: auto; }
+    .tab { flex: 1; min-width: 100px; padding: 10px; text-align: center; cursor: pointer; border-radius: 6px; font-weight: 600; transition: 0.3s; color: var(--muted); white-space: nowrap; }
     .tab.active { background: var(--orange); color: white; }
-    .tab-content { display: none; padding: 0 15px; }
+
+    .tab-content { display: none; padding: 0 20px; }
     .tab-content.active { display: block; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-    input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); background: #1a1a24; color: white; outline: none; }
-    button { background: var(--orange); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-    .approve-btn { background: var(--green); color: black; }
-    .reject-btn { background: var(--red); color: white; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative; }
+    .tx-type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
+    .tx-type.deposit { background: rgba(92, 255, 138, 0.2); color: var(--green); }
+    .tx-type.withdraw { background: rgba(255, 107, 107, 0.2); color: var(--red); }
+    
+    .tx-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .btn-approve { background: var(--green); color: black; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
+    .btn-reject { background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
+    
+    input, select { width: 100%; padding: 10px; margin-top: 5px; background: #1a1a24; border: 1px solid var(--border); color: white; border-radius: 5px; margin-bottom: 10px; }
+    .empty-state { text-align: center; color: var(--muted); padding: 40px; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>ADMIN PRO</h1>
-    <button onclick="logOut()" style="width:auto; padding:5px 15px;">EXIT</button>
+    <h1>ADMIN PANEL</h1>
+    <button onclick="logOut()" style="background:none; border:1px solid var(--orange); color:var(--orange); padding:5px 10px; border-radius:5px; cursor:pointer;">LOGOUT</button>
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab(event, 'tab-deposit')">DEPOSITS</div>
-    <div class="tab" onclick="switchTab(event, 'tab-withdraw')">WITHDRAWALS</div>
-    <div class="tab" onclick="switchTab(event, 'tab-tournament')">TOURNAMENTS</div>
-    <div class="tab" onclick="switchTab(event, 'tab-winners')">WINNERS</div>
-    <div class="tab" onclick="switchTab(event, 'tab-users')">USERS</div>
+    <div class="tab active" onclick="switchTab(event, 'requests')">REQUESTS</div>
+    <div class="tab" onclick="switchTab(event, 'tournaments')">TOURNAMENTS</div>
+    <div class="tab" onclick="switchTab(event, 'winners')">WINNERS</div>
+    <div class="tab" onclick="switchTab(event, 'users')">USERS</div>
   </div>
 
-  <div id="tab-deposit" class="tab-content active"><div id="deposit-list"></div></div>
-  <div id="tab-withdraw" class="tab-content"><div id="withdraw-list"></div></div>
+  <div id="tab-requests" class="tab-content active">
+    <div id="requests-list"><div class="empty-state">Loading requests...</div></div>
+  </div>
 
-  <div id="tab-tournament" class="tab-content">
+  <div id="tab-tournaments" class="tab-content">
     <div class="card">
-      <h3>Create Tournament</h3>
-      <input type="text" id="t-title" placeholder="Tournament Title">
-      <input type="number" id="t-fee" placeholder="Entry Fee (৳)">
-      <input type="number" id="t-p1" placeholder="1st Prize (৳)">
-      <input type="number" id="t-p2" placeholder="2nd Prize (৳)">
-      <input type="number" id="t-p3" placeholder="3rd Prize (৳)">
+      <h3 style="color:var(--orange)">Create Tournament</h3>
+      <input type="text" id="t-title" placeholder="Match Title">
+      <input type="number" id="t-prize1" placeholder="1st Prize (Amount)">
+      <input type="number" id="t-prize2" placeholder="2nd Prize (Amount)">
+      <input type="number" id="t-prize3" placeholder="3rd Prize (Amount)">
+      <input type="number" id="t-fee" placeholder="Entry Fee">
       <input type="datetime-local" id="t-time">
-      <button onclick="createTournament()">Create Now</button>
+      <button onclick="createTournament()" style="width:100%; padding:10px; background:var(--orange); border:none; color:white; font-weight:bold; border-radius:5px; cursor:pointer;">ADD TOURNAMENT</button>
     </div>
     <div id="tournament-list"></div>
   </div>
 
   <div id="tab-winners" class="tab-content">
     <div class="card">
-      <h3>Select Winners</h3>
-      <select id="match-select-winner"><option value="">Select Match</option></select>
-      <input type="number" id="win1" placeholder="1st Place UID (10 Digit)">
-      <input type="number" id="win2" placeholder="2nd Place UID (10 Digit)">
-      <input type="number" id="win3" placeholder="3rd Place UID (10 Digit)">
-      <button onclick="distributePrizes()" style="background:var(--gold); color:black;">Confirm Winners</button>
+      <h3 style="color:var(--gold)">Select Winners</h3>
+      <select id="winner-match-select"><option>Select Finished Match</option></select>
+      <input type="number" id="w1" placeholder="1st Place UID (10 Digit)">
+      <input type="number" id="w2" placeholder="2nd Place UID (10 Digit)">
+      <input type="number" id="w3" placeholder="3rd Place UID (10 Digit)">
+      <button onclick="distributePrizes()" style="width:100%; padding:10px; background:var(--green); border:none; color:black; font-weight:bold; border-radius:5px;">DISTRIBUTE PRIZES</button>
     </div>
   </div>
 
-  <div id="tab-users" class="tab-content"><div id="users-list"></div></div>
+  <div id="tab-users" class="tab-content">
+    <div id="users-list"></div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, increment, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, increment, getDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -87,91 +98,134 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, user => { if (!user) window.location.href = 'index.html'; else initAdmin(); });
+    onAuthStateChanged(auth, (user) => {
+      if (!user) window.location.href = 'index.html';
+      else { loadRequests(); loadTournaments(); loadUsers(); }
+    });
 
-    function initAdmin() {
-        loadTransactions('deposit', 'deposit-list');
-        loadTransactions('withdraw', 'withdraw-list');
-        loadUsers();
-        loadTournaments();
+    // 1. Requests (Deposit/Withdraw) - Ager motoi
+    function loadRequests() {
+      const list = document.getElementById('requests-list');
+      const q = query(collection(db, 'transactions'), where('status', '==', 'pending'));
+      onSnapshot(q, (snap) => {
+        list.innerHTML = '';
+        if (snap.empty) { list.innerHTML = '<div class="empty-state">No pending requests.</div>'; return; }
+        snap.forEach(d => {
+          const tx = d.data();
+          list.innerHTML += `
+            <div class="card">
+              <div class="tx-type ${tx.type}">${tx.type.toUpperCase()}</div>
+              <div style="font-weight:bold; color:var(--gold)">${tx.email}</div>
+              <div style="font-size:14px; margin:5px 0;">Amount: ৳${tx.amount} | Num: ${tx.number}</div>
+              <div class="tx-actions">
+                <button class="btn-approve" onclick="handleTx('${d.id}', '${tx.uid}', ${tx.amount}, '${tx.type}', 'approve')">Approve</button>
+                <button class="btn-reject" onclick="handleTx('${d.id}', null, 0, null, 'reject')">Reject</button>
+              </div>
+            </div>`;
+        });
+      });
     }
 
-    // --- Tournament Logic (With 3 Prizes) ---
+    window.handleTx = async (id, uid, amt, type, action) => {
+      if(!confirm("Are you sure?")) return;
+      if(action === 'approve') {
+        await updateDoc(doc(db, 'transactions', id), { status: 'approved' });
+        const change = type === 'deposit' ? amt : -amt;
+        await updateDoc(doc(db, 'users', uid), { balance: increment(change) });
+        alert("Success ✅");
+      } else {
+        await updateDoc(doc(db, 'transactions', id), { status: 'rejected' });
+        alert("Rejected ❌");
+      }
+    };
+
+    // 2. Tournament Logic with Auto-Delete
     window.createTournament = async () => {
-      const data = {
-        title: document.getElementById('t-title').value,
-        fee: Number(document.getElementById('t-fee').value),
-        p1: Number(document.getElementById('t-p1').value),
-        p2: Number(document.getElementById('t-p2').value),
-        p3: Number(document.getElementById('t-p3').value),
-        time: document.getElementById('t-time').value,
-        status: 'active'
-      };
-      await addDoc(collection(db, 'tournaments'), data);
-      alert("Match Created!");
+      const title = document.getElementById('t-title').value;
+      const p1 = document.getElementById('t-prize1').value;
+      const p2 = document.getElementById('t-prize2').value;
+      const p3 = document.getElementById('t-prize3').value;
+      const fee = document.getElementById('t-fee').value;
+      const time = document.getElementById('t-time').value;
+
+      if(!title || !time) return alert("Fill all fields");
+      await addDoc(collection(db, 'tournaments'), { 
+        title, prize1: p1, prize2: p2, prize3: p3, fee, time, status: 'active' 
+      });
+      alert("Match Added!");
     };
 
     function loadTournaments() {
-      onSnapshot(collection(db, 'tournaments'), snap => {
-        const list = document.getElementById('tournament-list');
-        const select = document.getElementById('match-select-winner');
-        list.innerHTML = ''; select.innerHTML = '<option value="">Select Match</option>';
+      const list = document.getElementById('tournament-list');
+      const select = document.getElementById('winner-match-select');
+      
+      onSnapshot(collection(db, 'tournaments'), (snap) => {
+        list.innerHTML = '<h3 style="margin:15px 0 10px">Live List</h3>';
+        select.innerHTML = '<option value="">Select Match to Give Prize</option>';
         
         snap.forEach(d => {
           const t = d.data();
-          // Winner Selection Dropdown
-          select.innerHTML += `<option value="${d.id}">${t.title}</option>`;
-          
-          // Auto-delete after 1 min logic
           const matchTime = new Date(t.time).getTime();
-          if (Date.now() > (matchTime + 60000)) {
+          const now = new Date().getTime();
+
+          // Auto Delete: 1 minute after match time
+          if (now > (matchTime + 60000)) {
             deleteDoc(doc(db, 'tournaments', d.id));
           } else {
-            list.innerHTML += `<div class="card"><h4>${t.title}</h4><p>Time: ${t.time}</p></div>`;
+            list.innerHTML += `
+              <div class="card">
+                <b>${t.title}</b> <br> <small>${new Date(t.time).toLocaleString()}</small>
+                <p>Fee: ৳${t.fee} | Prizes: ${t.prize1}/${t.prize2}/${t.prize3}</p>
+              </div>`;
+            select.innerHTML += `<option value="${d.id}">${t.title}</option>`;
           }
         });
       });
     }
 
-    // --- Winner Distribution Logic ---
+    // 3. Winner Distribution Logic
     window.distributePrizes = async () => {
-      const mId = document.getElementById('match-select-winner').value;
-      const uids = [
-        document.getElementById('win1').value,
-        document.getElementById('win2').value,
-        document.getElementById('win3').value
-      ];
+      const mId = document.getElementById('winner-match-select').value;
+      const uids = [document.getElementById('w1').value, document.getElementById('w2').value, document.getElementById('w3').value];
+      
+      if(!mId || uids[0].length !== 10) return alert("Select Match & Enter 10-digit UID");
 
-      if(!mId) return alert("Select a match!");
+      const tSnap = await getDoc(doc(db, 'tournaments', mId));
+      const t = tSnap.data();
+      const prizes = [t.prize1, t.prize2, t.prize3];
 
       for(let i=0; i<3; i++) {
-        if(uids[i] && uids[i].length === 10) {
-            const q = query(collection(db, 'users'), where('uid', '==', uids[i]));
-            const qs = await getDocs(q);
-            if(!qs.empty) {
-                const prizeField = `p${i+1}`; 
-                // Fetch tournament to get prize amount
-                const tSnap = await getDocs(query(collection(db, 'tournaments'))); 
-                // Note: Simplified for logic, you should fetch specific mId doc
-                const prizeAmt = 100; // Example: Replace with actual t.p1, t.p2 etc
-                await updateDoc(doc(db, 'users', qs.docs[0].id), { balance: increment(prizeAmt) });
-            }
+        if(uids[i]) {
+          const q = query(collection(db, 'users'), where('uid', '==', uids[i]));
+          const uSnap = await getDocs(q);
+          uSnap.forEach(async (uDoc) => {
+            await updateDoc(doc(db, 'users', uDoc.id), { balance: increment(Number(prizes[i])) });
+          });
         }
       }
-      alert("Prizes Distributed!");
+      alert("Prizes Distributed! ✅");
+      await deleteDoc(doc(db, 'tournaments', mId));
     };
 
-    // --- Tab & Auth ---
-    window.switchTab = (e, id) => {
+    function loadUsers() {
+      const list = document.getElementById('users-list');
+      onSnapshot(collection(db, 'users'), snap => {
+        list.innerHTML = '<h3 style="margin:10px 0">Users List</h3>';
+        snap.forEach(d => {
+          const u = d.data();
+          list.innerHTML += `<div class="card">UID: ${u.uid} | ${u.email} <br> Balance: ৳${u.balance || 0}</div>`;
+        });
+      });
+    }
+
+    window.switchTab = (e, tab) => {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
       e.target.classList.add('active');
     };
 
     window.logOut = () => signOut(auth);
-
-    // Re-use other functions (loadTransactions, loadUsers) from previous stable version
   </script>
 </body>
 </html>
