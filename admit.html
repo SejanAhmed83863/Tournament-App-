@@ -3,170 +3,205 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Admin Panel - Tournament App</title>
+  <title>Admin Dashboard - Pro</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --gold: #FFD700; --orange: #FF6B00; --dark: #0A0A0F; --card: #12121A; --border: #2A2A3A; --text: #E8E8F0; --muted: #6B6B80; --green: #5CFF8A; --red: #FF6B6B; }
     body { background: var(--dark); color: var(--text); font-family: 'Rajdhani', sans-serif; min-height: 100vh; padding-bottom: 40px; }
     
-    .header { background: var(--card); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-family: 'Bebas Neue', sans-serif; color: var(--orange); letter-spacing: 1px; }
+    .header { background: var(--card); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .header h1 { font-family: 'Bebas Neue', sans-serif; color: var(--orange); }
 
-    .tabs { display: flex; background: #1a1a24; padding: 5px; margin: 20px; border-radius: 8px; gap: 5px; }
-    .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; border-radius: 6px; font-weight: 600; transition: 0.3s; color: var(--muted); }
+    .tabs { display: flex; background: #1a1a24; padding: 5px; margin: 15px; border-radius: 8px; gap: 5px; overflow-x: auto; }
+    .tab { flex-shrink: 0; padding: 10px 20px; text-align: center; cursor: pointer; border-radius: 6px; font-weight: 600; color: var(--muted); white-space: nowrap; }
     .tab.active { background: var(--orange); color: white; }
 
-    .tab-content { display: none; padding: 0 20px; }
+    .tab-content { display: none; padding: 0 15px; }
     .tab-content.active { display: block; }
 
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative; }
-    .tx-type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
-    .tx-type.deposit { background: rgba(92, 255, 138, 0.2); color: var(--green); }
-    .tx-type.withdraw { background: rgba(255, 107, 107, 0.2); color: var(--red); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); background: #1a1a24; color: white; outline: none; }
+    button { background: var(--orange); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    button:active { transform: scale(0.98); }
     
-    .tx-email { font-weight: 700; color: var(--gold); }
-    .tx-details { margin: 8px 0; color: var(--text); font-size: 14px; }
-    .tx-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .grid-btns { display: flex; gap: 10px; }
+    .approve-btn { background: var(--green); color: black; }
+    .reject-btn { background: var(--red); color: white; }
     
-    .btn-approve { background: var(--green); color: black; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
-    .btn-reject { background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; }
-    
-    .empty-state { text-align: center; color: var(--muted); padding: 40px; }
+    .user-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding: 10px 0; }
+    .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .bg-deposit { background: rgba(92, 255, 138, 0.2); color: var(--green); }
+    .bg-withdraw { background: rgba(255, 107, 107, 0.2); color: var(--red); }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>ADMIN PANEL</h1>
-    <button onclick="logOut()" style="background:none; border:1px solid var(--orange); color:var(--orange); padding:5px 10px; border-radius:5px; cursor:pointer;">LOGOUT</button>
+    <h1>ADMIN PRO</h1>
+    <button onclick="logOut()" style="width:auto; padding:5px 15px;">EXIT</button>
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('requests')">REQUESTS</div>
-    <div class="tab" onclick="switchTab('users')">USERS</div>
+    <div class="tab active" onclick="switchTab(event, 'tab-deposit')">DEPOSITS</div>
+    <div class="tab" onclick="switchTab(event, 'tab-withdraw')">WITHDRAWALS</div>
+    <div class="tab" onclick="switchTab(event, 'tab-tournament')">TOURNAMENTS</div>
+    <div class="tab" onclick="switchTab(event, 'tab-users')">USERS / PRIZE</div>
   </div>
 
-  <div id="tab-requests" class="tab-content active">
-    <div id="requests-list">
-      <div class="empty-state">Loading pending requests...</div>
+  <div id="tab-deposit" class="tab-content active">
+    <div id="deposit-list"></div>
+  </div>
+
+  <div id="tab-withdraw" class="tab-content">
+    <div id="withdraw-list"></div>
+  </div>
+
+  <div id="tab-tournament" class="tab-content">
+    <div class="card">
+      <h3>Create Tournament</h3>
+      <input type="text" id="t-title" placeholder="Tournament Title">
+      <input type="text" id="t-prize" placeholder="Prize Pool (e.g. 500)">
+      <input type="text" id="t-fee" placeholder="Entry Fee (e.g. 50)">
+      <input type="datetime-local" id="t-time">
+      <button onclick="createTournament()">Create Now</button>
     </div>
+    <div id="tournament-list"></div>
   </div>
 
   <div id="tab-users" class="tab-content">
-    <div id="users-list">
-      <div class="empty-state">Loading users...</div>
-    </div>
+    <div id="users-list"></div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, orderBy } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
-    // ✅ Apnar Project ID use kore config fill-up kora hoyeche
     const firebaseConfig = {
-      apiKey: "AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0", // Obossoi Firebase Console theke asol key-ti boshaben
+      apiKey: "AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0",
       authDomain: "tournament-app-4a050.firebaseapp.com",
       projectId: "tournament-app-4a050",
       storageBucket: "tournament-app-4a050.appspot.com",
-      messagingSenderId: "542385108426", 
-      appId: "1:542385108426:web:exampleid"
+      messagingSenderId: "811957533858", 
+      appId: "1:811957533858:web:1d1f0f916c0aba5eccebfb"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = 'index.html';
-      } else {
-        initApp();
-      }
-    });
+    onAuthStateChanged(auth, user => { if (!user) window.location.href = 'index.html'; else initAdmin(); });
 
-    function initApp() {
-      loadTransactions();
+    function initAdmin() {
+      loadTransactions('deposit', 'deposit-list');
+      loadTransactions('withdraw', 'withdraw-list');
       loadUsers();
+      loadTournaments();
     }
 
-    function loadTransactions() {
-      const list = document.getElementById('requests-list');
-      // Collection name: 'transactions' check kora hobe
-      const q = query(collection(db, 'transactions'), where('status', '==', 'pending'));
-
-      onSnapshot(q, (snap) => {
-        list.innerHTML = '';
-        if (snap.empty) {
-          list.innerHTML = '<div class="empty-state">No pending requests found!</div>';
-          return;
-        }
-
+    // --- Transaction Logic ---
+    function loadTransactions(type, containerId) {
+      const q = query(collection(db, 'transactions'), where('type', '==', type), where('status', '==', 'pending'));
+      onSnapshot(q, snap => {
+        const div = document.getElementById(containerId);
+        div.innerHTML = snap.empty ? '<p>No pending ' + type + '</p>' : '';
         snap.forEach(d => {
           const tx = d.data();
-          const id = d.id;
-          list.innerHTML += `
+          div.innerHTML += `
             <div class="card">
-              <div class="tx-type ${tx.type}">${tx.type ? tx.type.toUpperCase() : 'UNKNOWN'}</div>
-              <div class="tx-email">${tx.email || 'No Email'}</div>
-              <div class="tx-details">
-                <b>Amount:</b> ৳${tx.amount} <br>
-                <b>Method:</b> ${tx.method} | <b>Number:</b> ${tx.number}
-              </div>
-              <div class="tx-actions">
-                <button class="btn-approve" onclick="handleTx('${id}', '${tx.uid}', ${tx.amount}, '${tx.type}', 'approve')">Approve</button>
-                <button class="btn-reject" onclick="handleTx('${id}', null, 0, null, 'reject')">Reject</button>
+              <span class="badge bg-${type}">${type.toUpperCase()}</span>
+              <p><b>User:</b> ${tx.email}</p>
+              <p><b>Amount:</b> ৳${tx.amount} | <b>Num:</b> ${tx.number}</p>
+              <div class="grid-btns">
+                <button class="approve-btn" onclick="processTx('${d.id}', '${tx.uid}', ${tx.amount}, '${type}', 'approved')">Approve</button>
+                <button class="reject-btn" onclick="processTx('${d.id}', null, 0, null, 'rejected')">Reject</button>
               </div>
             </div>`;
         });
-      }, (err) => {
-        list.innerHTML = '<div class="empty-state" style="color:red">Permission Denied! Check Firestore Rules.</div>';
       });
     }
 
-    window.handleTx = async (txId, uid, amount, type, action) => {
-      if (!confirm(`Are you sure you want to ${action}?`)) return;
-      try {
-        if (action === 'approve') {
-          await updateDoc(doc(db, 'transactions', txId), { status: 'approved' });
-          if (type === 'deposit' && uid) {
-            await updateDoc(doc(db, 'users', uid), { balance: increment(amount) });
-          }
-          alert("Approved ✅");
-        } else {
-          await updateDoc(doc(db, 'transactions', txId), { status: 'rejected' });
-          alert("Rejected ❌");
-        }
-      } catch (e) {
-        alert("Error: " + e.message);
+    window.processTx = async (id, uid, amt, type, status) => {
+      if(!confirm("Confirm action?")) return;
+      await updateDoc(doc(db, 'transactions', id), { status });
+      if (status === 'approved' && uid) {
+        // Deposit হলে প্লাস হবে, Withdraw হলে মাইনাস
+        const finalAmt = type === 'deposit' ? amt : -amt;
+        await updateDoc(doc(db, 'users', uid), { balance: increment(finalAmt) });
       }
+      alert("Updated!");
     };
 
+    // --- Tournament Logic ---
+    window.createTournament = async () => {
+      const title = document.getElementById('t-title').value;
+      const prize = document.getElementById('t-prize').value;
+      const fee = document.getElementById('t-fee').value;
+      const time = document.getElementById('t-time').value;
+      if(!title || !time) return alert("Fill all fields");
+
+      await addDoc(collection(db, 'tournaments'), { title, prize, fee, time, timestamp: Date.now() });
+      alert("Match Added!");
+    };
+
+    function loadTournaments() {
+      onSnapshot(collection(db, 'tournaments'), snap => {
+        const div = document.getElementById('tournament-list');
+        div.innerHTML = '<h3>Active Matches</h3>';
+        snap.forEach(d => {
+          const t = d.data();
+          const matchTime = new Date(t.time).getTime();
+          const now = new Date().getTime();
+          
+          // অটো ডিলিট লজিক: শুরুর ১ মিনিট পর (৬০,০০০ মিলি-সেকেন্ড)
+          if (now > (matchTime + 60000)) {
+            deleteDoc(doc(db, 'tournaments', d.id));
+          } else {
+            div.innerHTML += `
+              <div class="card">
+                <h4>${t.title}</h4>
+                <p>Fee: ${t.fee} | Prize: ${t.prize}</p>
+                <p>Time: ${new Date(t.time).toLocaleString()}</p>
+                <button class="reject-btn" onclick="deleteMatch('${d.id}')">Delete Manually</button>
+              </div>`;
+          }
+        });
+      });
+    }
+    window.deleteMatch = (id) => deleteDoc(doc(db, 'tournaments', id));
+
+    // --- User & Prize Logic ---
     function loadUsers() {
-      const list = document.getElementById('users-list');
-      onSnapshot(collection(db, 'users'), (snap) => {
-        list.innerHTML = '';
+      onSnapshot(collection(db, 'users'), snap => {
+        const div = document.getElementById('users-list');
+        div.innerHTML = '<h3>User List & Prize Distribution</h3>';
         snap.forEach(d => {
           const u = d.data();
-          list.innerHTML += `
+          div.innerHTML += `
             <div class="card">
-              <div style="font-weight:bold; color:var(--gold)">${u.email}</div>
-              <div style="font-size:14px">Balance: ৳${u.balance || 0}</div>
+              <p><b>${u.email}</b></p>
+              <p>Balance: ৳${u.balance || 0}</p>
+              <button onclick="givePrize('${d.id}')">Add Prize Money</button>
             </div>`;
         });
       });
     }
 
-    window.switchTab = (tab) => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById('tab-' + tab).classList.add('active');
+    window.givePrize = async (id) => {
+      const amt = prompt("Enter Prize Amount:");
+      if(amt) await updateDoc(doc(db, 'users', id), { balance: increment(Number(amt)) });
     };
 
-    window.logOut = () => signOut(auth).then(() => window.location.href = 'index.html');
+    // Tab Switching
+    window.switchTab = (e, id) => {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      e.target.classList.add('active');
+    };
 
+    window.logOut = () => signOut(auth);
   </script>
 </body>
 </html>
