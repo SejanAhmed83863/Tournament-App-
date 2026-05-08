@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>FF Arena</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--gold:#FFD700;--orange:#FF6B00;--dark:#0A0A0F;--card:#12121A;--border:#2A2A3A;--text:#E8E8F0;--muted:#6B6B80;--green:#5CFF8A;--red:#FF6B6B}
+    body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;padding-bottom:80px}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(255,107,0,0.15) 0%,transparent 70%)}
+
+    /* NAV */
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.97);position:sticky;top:0;z-index:100}
+    .nav-logo{font-family:'Bebas Neue';font-size:26px;letter-spacing:4px;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .wallet-badge{background:linear-gradient(135deg,var(--orange),#FF8C00);padding:6px 16px;border-radius:20px;font-size:14px;font-weight:700;color:white;cursor:pointer}
+
+    .content{padding:16px;max-width:500px;margin:0 auto;position:relative;z-index:1}
+
+    /* HERO BANNER */
+    .hero-banner{border-radius:16px;overflow:hidden;margin-bottom:20px;position:relative;background:linear-gradient(135deg,#1a0a00,#0d0d1a);border:1px solid var(--border)}
+    .hero-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--orange),var(--gold),transparent);z-index:2}
+    .banner-bg{width:100%;height:180px;object-fit:cover;opacity:0.45;display:block}
+    .banner-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,15,0.95) 0%,rgba(10,10,15,0.2) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:20px;z-index:1}
+    .banner-title{font-family:'Bebas Neue';font-size:38px;letter-spacing:4px;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+    .banner-sub{color:var(--muted);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+    .banner-stats{display:flex;gap:16px;margin-top:10px}
+    .banner-stat{font-size:12px;color:var(--text);font-weight:700}
+    .banner-stat span{color:var(--orange)}
+
+    /* LIVE TOURNAMENTS */
+    .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .section-title{font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;color:var(--muted)}
+    .see-all{color:var(--orange);font-size:13px;font-weight:700;cursor:pointer;text-decoration:none}
+
+    .mini-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:0.2s;text-decoration:none}
+    .mini-card:active{transform:scale(0.98);border-color:var(--orange)}
+    .mini-left{display:flex;align-items:center;gap:12px}
+    .mini-icon{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--orange),var(--gold));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .mini-name{font-size:15px;font-weight:700;margin-bottom:2px}
+    .mini-meta{font-size:12px;color:var(--muted)}
+    .mini-right{text-align:right}
+    .mini-prize{font-family:'Bebas Neue';font-size:20px;color:var(--gold)}
+    .mini-entry{font-size:12px;color:var(--muted)}
+    .mini-badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:rgba(92,255,138,0.15);color:var(--green);border:1px solid rgba(92,255,138,0.3);margin-top:3px}
+    .empty-state{text-align:center;color:var(--muted);padding:30px 20px;font-size:14px}
+
+    /* BOTTOM NAV - only 2 tabs */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,0.98);border-top:1px solid var(--border);display:flex;z-index:200}
+    .nav-item{flex:1;padding:14px 8px;text-align:center;cursor:pointer;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:5px;border:none;background:none;transition:0.2s}
+    .nav-item.active{color:var(--orange)}
+    .nav-icon{font-size:26px}
+    .nav-item.active .nav-icon{filter:drop-shadow(0 0 8px rgba(255,107,0,0.7))}
+    .nav-divider{width:1px;background:var(--border);margin:10px 0}
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">🏆 FF Arena</div>
+  <div class="wallet-badge" onclick="window.location.href='dashboard.html'">৳ <span id="nav-balance">0</span></div>
+</nav>
+
+<div class="content">
+
+  <!-- HERO BANNER -->
+  <div class="hero-banner">
+    <img class="banner-bg" src="https://w0.peakpx.com/wallpaper/701/320/wallpaper-free-fire-logo-esports.jpg" alt="Banner" onerror="this.style.display='none'"/>
+    <div class="banner-overlay">
+      <div class="banner-title">Battle Arena</div>
+      <div class="banner-sub">Compete · Win · Dominate</div>
+      <div class="banner-stats">
+        <div class="banner-stat">🎮 Live: <span id="t-count">0</span></div>
+        <div class="banner-stat">👥 Players: <span id="p-count">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE TOURNAMENTS PREVIEW -->
+  <div class="section-header">
+    <div class="section-title">🔥 Live Tournaments</div>
+    <a class="see-all" href="tournaments.html">See All →</a>
+  </div>
+  <div id="live-list"><div class="empty-state">⏳ Loading...</div></div>
+
+</div>
+
+<!-- BOTTOM NAV - 2 tabs only -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="window.location.href='home.html'">
+    <span class="nav-icon">🏆</span>Tournaments
+  </button>
+  <div class="nav-divider"></div>
+  <button class="nav-item" onclick="window.location.href='dashboard.html'">
+    <span class="nav-icon">👤</span>Profile
+  </button>
+</nav>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, getDocs, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = { apiKey:"AIzaSyBgMroBilivfk7bJxoz93HjxSt6yU7Ura0", authDomain:"tournament-app-4a050.firebaseapp.com", projectId:"tournament-app-4a050", storageBucket:"tournament-app-4a050.firebasestorage.app", messagingSenderId:"811957533858", appId:"1:811957533858:web:1d1f0f916c0aba5eccebfb" };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href='index.html'; return; }
+    const snap = await getDoc(doc(db,'users',user.uid));
+    if (snap.exists()) document.getElementById('nav-balance').textContent = snap.data().balance||0;
+    await loadTournaments();
+    await loadStats();
+  });
+
+  async function loadTournaments() {
+    const snap = await getDocs(query(collection(db,'tournaments'), orderBy('time','asc')));
+    const list = document.getElementById('live-list');
+    const active = [];
+    snap.forEach(d => { const t=d.data(); if(t.status==='open') active.push({id:d.id,...t}); });
+    document.getElementById('t-count').textContent = active.length;
+    if (active.length===0) { list.innerHTML='<div class="empty-state">🎮 No active tournaments right now.<br>Check back soon!</div>'; return; }
+    list.innerHTML='';
+    active.slice(0,4).forEach(t => {
+      const joined=t.joined||0, max=t.maxPlayers||99;
+      const mode=t.teamType==1?'Solo':t.teamType==2?'Duo':'Squad';
+      const timeStr=t.time?new Date(t.time).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+      list.innerHTML+=`
+        <a class="mini-card" href="tournaments.html">
+          <div class="mini-left">
+            <div class="mini-icon">🎮</div>
+            <div>
+              <div class="mini-name">${t.title}</div>
+              <div class="mini-meta">${mode} · ${timeStr}</div>
+              <span class="mini-badge">OPEN</span>
+            </div>
+          </div>
+          <div class="mini-right">
+            <div class="mini-prize">৳${t.prize1||0}</div>
+            <div class="mini-entry">Entry: ৳${t.fee}</div>
+            <div class="mini-entry">${joined}/${max} joined</div>
+          </div>
+        </a>`;
+    });
+  }
+
+  async function loadStats() {
+    const snap = await getDocs(collection(db,'users'));
+    document.getElementById('p-count').textContent = snap.size;
+  }
+</script>
+</body>
+</html>
